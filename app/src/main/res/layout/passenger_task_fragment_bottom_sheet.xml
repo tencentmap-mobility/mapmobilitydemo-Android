@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:orientation="vertical"
+    android:layout_marginLeft="32dp"
+    android:layout_marginRight="32dp"
+    android:paddingBottom="16dp"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:layout_behavior="@string/bottom_sheet_behavior"
+    app:behavior_peekHeight="64dp"
+    app:behavior_hideable="false">
+
+    <ImageView
+        android:id="@+id/img_location_to_origin"
+        android:layout_width="42dp"
+        android:layout_height="42dp"
+        android:layout_marginBottom="6dp"
+        android:layout_gravity="right"
+        android:src="@mipmap/main_bt_position" />
+
+    <include
+        android:id="@+id/bottom_sheet_test_layout"
+        layout="@layout/passenger_task_fragment_bottom_sheet_test"
+        />
+
+</LinearLayout>

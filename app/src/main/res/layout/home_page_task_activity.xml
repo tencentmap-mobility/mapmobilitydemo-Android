@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/tv_intent_to_passenger"
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="48dp"
+        android:text="乘客端"
+        android:textSize="18sp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        android:textColor="#fff"
+        android:background="@drawable/home_page_content_bg"
+        />
+
+    <TextView
+        android:id="@+id/tv_intent_to_driver"
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:layout_below="@id/tv_intent_to_passenger"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="24dp"
+        android:text="司机端"
+        android:textSize="18sp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        android:textColor="#fff"
+        android:background="@drawable/home_page_content_bg"
+        />
+
+</RelativeLayout>
