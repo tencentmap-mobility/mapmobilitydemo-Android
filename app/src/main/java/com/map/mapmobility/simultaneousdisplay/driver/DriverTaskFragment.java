@@ -1,7 +1,8 @@
-package com.map.mapmobility.driver;
+package com.map.mapmobility.simultaneousdisplay.driver;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -46,8 +47,6 @@ public class DriverTaskFragment extends Fragment
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         carNaviView = mView.findViewById(R.id.car_navi_view);
-        // 初始化地图，记得生命周期的方法关联上地图
-        mPresenter.initMap(carNaviView);
 
         tvSearchRoute = mView.findViewById(R.id.tv_start_search_route);
         tvSearchRoute.setOnClickListener(this);
@@ -58,6 +57,12 @@ public class DriverTaskFragment extends Fragment
         tvDriverPassengerSyn = mView.findViewById(R.id.tv_start_driver_passenger_syn);
         tvDriverPassengerSyn.setOnClickListener(this);
         drawerLayout = mView.findViewById(R.id.driver_task_fragment_drawer_layout);
+
+        if(mPresenter != null){
+            mPresenter.start();
+            // 初始化导航manager
+            mPresenter.initNaviManager(carNaviView);
+        }
     }
 
     @Override
@@ -119,9 +124,6 @@ public class DriverTaskFragment extends Fragment
             carNaviView.onResume();
         }
         super.onResume();
-        if(mPresenter != null){
-            mPresenter.start();
-        }
     }
 
     @Override

@@ -1,7 +1,4 @@
-package com.map.mapmobility.heaper;
-
-import android.os.Handler;
-import android.util.Log;
+package com.map.mapmobility.simultaneousdisplay.helper;
 
 import com.tencent.map.geolocation.TencentLocation;
 import com.tencent.map.locussynchro.model.LatLng;
@@ -10,16 +7,12 @@ import com.tencent.map.locussynchro.model.SynchroRoute;
 import com.tencent.map.navi.data.AttachedLocation;
 import com.tencent.map.navi.data.RouteData;
 import com.tencent.map.navi.data.TrafficItem;
-import com.tencent.tencentmap.mapsdk.maps.CameraUpdateFactory;
-import com.tencent.tencentmap.mapsdk.maps.TencentMap;
-import com.tencent.tencentmap.mapsdk.maps.model.LatLngBounds;
 
 import java.util.ArrayList;
-import java.util.List;
 
-public class Heaper {
+public class ConvertHelper {
 
-    private Heaper() {}
+    private ConvertHelper() {}
 
     /**
      *  乘客端更新位置的时候，需要转换
@@ -68,30 +61,6 @@ public class Heaper {
     }
 
     /**
-     *  获取小车平滑需要的点串信息
-     * @param locations
-     */
-    public static com.tencent.tencentmap.mapsdk.maps.model.LatLng[]
-            getLatLngsBySynchroLocation(ArrayList<SynchroLocation> locations) {
-        if(locations == null){
-            return null;
-        }
-        int size = locations.size();
-        com.tencent.tencentmap.mapsdk.maps.model.LatLng[] latLngs =
-                new com.tencent.tencentmap.mapsdk.maps.model.LatLng[size];
-        for(int i=0; i<size; i++){
-            if(locations.get(i).getAttachedIndex() != -1){
-                latLngs[i] = new com.tencent.tencentmap.mapsdk.maps.model.LatLng
-                        (locations.get(i).getAttachedLatitude(), locations.get(i).getAttachedLongitude());
-            }else{
-                latLngs[i] = new com.tencent.tencentmap.mapsdk.maps.model.LatLng
-                        (locations.get(i).getAltitude(), locations.get(i).getLongitude());
-            }
-        }
-        return latLngs;
-    }
-
-    /**
      *  两个latlng的转换
      * @param list
      */
@@ -109,41 +78,10 @@ public class Heaper {
     }
 
     /**
-     * 缩放至整条路线都在可视区域内
-     *
-     * @param map 底图map
-     * @param routePoints 当前待操作的路线的点串
-     * @param leftMargin 左边距
-     * @param topMargin 上边距
-     * @param rightMargin 右边距
-     * @param bottomMargin 下边距
-     */
-    public static void fitsWithRoute(final TencentMap map
-            , final List<com.tencent.tencentmap.mapsdk.maps.model.LatLng> routePoints
-            , final int leftMargin
-            , final int topMargin
-            , final int rightMargin
-            , final int bottomMargin) {
-        if((routePoints == null)|| map == null){
-            return;
-        }
-        new Handler().post(new Runnable() {
-            @Override
-            public void run() {
-                LatLngBounds.Builder builder = new LatLngBounds.Builder();
-                builder.include(routePoints);
-                LatLngBounds bounds = builder.build();
-                map.animateCamera(CameraUpdateFactory.newLatLngBoundsRect(bounds,
-                        leftMargin, rightMargin, topMargin, bottomMargin));
-            }
-        });
-    }
-
-    /**
      *  获得路线点串
      * @return
      */
-    public static ArrayList<LatLng> getRoutePoints(RouteData routeData) {
+    public static ArrayList<com.tencent.map.locussynchro.model.LatLng> getRoutePoints(RouteData routeData) {
         ArrayList<com.tencent.map.locussynchro.model.LatLng> routePoints = new ArrayList<>();
         for (int i=0; i < routeData.getRoutePoints().size(); i++) {
             routePoints.add(new com.tencent.map.locussynchro.model.LatLng
@@ -157,7 +95,8 @@ public class Heaper {
      *  获取路况items
      * @return
      */
-    public static ArrayList<com.tencent.map.locussynchro.model.TrafficItem> getTrafficItems(ArrayList<Integer> indexList) {
+    public static ArrayList<com.tencent.map.locussynchro.model.TrafficItem>
+            getTrafficItems(ArrayList<Integer> indexList) {
         ArrayList<TrafficItem> trafficItems = new ArrayList<>();
         for (int i=0; i<indexList.size(); i=i+3) {
             TrafficItem item = new TrafficItem();
@@ -170,7 +109,8 @@ public class Heaper {
         ArrayList<com.tencent.map.locussynchro.model.TrafficItem> result = new ArrayList<>();
         for (int i = 0; i < trafficItems.size(); i++) {
             TrafficItem tmpItem = trafficItems.get(i);
-            com.tencent.map.locussynchro.model.TrafficItem newTrafficItem = new com.tencent.map.locussynchro.model.TrafficItem();
+            com.tencent.map.locussynchro.model.TrafficItem newTrafficItem =
+                    new com.tencent.map.locussynchro.model.TrafficItem();
 
             newTrafficItem.setTraffic(tmpItem.getTraffic());
             newTrafficItem.setToIndex(tmpItem.getToIndex());
@@ -187,8 +127,28 @@ public class Heaper {
     public static SynchroRoute getSynRoute(RouteData routeData) {
         SynchroRoute synchroRoute = new SynchroRoute();
         synchroRoute.setRouteId(routeData.getRouteId());
-        synchroRoute.setRoutePoints(Heaper.getRoutePoints(routeData));
-        synchroRoute.setTrafficItems(Heaper.getTrafficItems(routeData.getTrafficIndexList()));
+        synchroRoute.setRoutePoints(ConvertHelper.getRoutePoints(routeData));
+        synchroRoute.setTrafficItems(ConvertHelper.getTrafficItems(routeData.getTrafficIndexList()));
         return synchroRoute;
+    }
+
+    /**
+     *  将trafficItem转换成司乘需要的trafficItem
+     * @param arrayList
+     * @return
+     */
+    public static ArrayList<com.tencent.map.locussynchro.model.TrafficItem> converTrafficTimes
+            (ArrayList<TrafficItem> arrayList) {
+        ArrayList<com.tencent.map.locussynchro.model.TrafficItem> result = new ArrayList<>();
+        for (int i = 0; i < arrayList.size(); i++) {
+            TrafficItem tmpItem = arrayList.get(i);
+            com.tencent.map.locussynchro.model.TrafficItem newTrafficItem =
+                    new com.tencent.map.locussynchro.model.TrafficItem();
+            newTrafficItem.setTraffic(tmpItem.getTraffic());
+            newTrafficItem.setToIndex(tmpItem.getToIndex());
+            newTrafficItem.setFromIndex(tmpItem.getFromIndex());
+            result.add(newTrafficItem);
+        }
+        return  result;
     }
 }

@@ -5,11 +5,11 @@
 
     <TextView
         android:id="@+id/tv_intent_to_passenger"
-        android:layout_width="300dp"
+        android:layout_width="250dp"
         android:layout_height="wrap_content"
         android:gravity="center"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="48dp"
+        android:layout_marginTop="42dp"
         android:text="乘客端"
         android:textSize="18sp"
         android:paddingTop="12dp"
@@ -20,7 +20,7 @@
 
     <TextView
         android:id="@+id/tv_intent_to_driver"
-        android:layout_width="300dp"
+        android:layout_width="250dp"
         android:layout_height="wrap_content"
         android:gravity="center"
         android:layout_below="@id/tv_intent_to_passenger"

@@ -1,8 +1,6 @@
-package com.map.mapmobility.driver;
+package com.map.mapmobility.simultaneousdisplay.driver;
 
 import android.os.Bundle;
-import android.view.Window;
-import android.view.WindowManager;
 
 import androidx.fragment.app.FragmentManager;
 

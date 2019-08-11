@@ -36,13 +36,13 @@
         <!-- 导航地图的key-->
         <meta-data
             android:name="TencentMapSDK"
-            android:value="XXX" />
+            android:value="xxx" />
         <!-- 司乘同显的key-->
         <meta-data
             android:name="com.tencent.map.locussynchro.api_key"
-            android:value="XXX" />
+            android:value="xxx" />
 
-        <activity android:name=".homepage.HomePageTaskActivity">
+        <activity android:name=".mobilitypage.MobilityTaskActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -50,11 +50,15 @@
             </intent-filter>
         </activity>
 
+        <!-- 司乘同显首页activity-->
+        <activity android:name=".simultaneousdisplay.sdisplaypage.SimultaneousTaskActivity"/>
         <!-- 乘客端activity-->
-        <activity android:name=".passenger.PassengerTaskActivity"/>
-
+        <activity android:name=".simultaneousdisplay.passenger.PassengerTaskActivity"/>
         <!-- 司机端activity-->
-        <activity android:name=".driver.DriverTaskActivity"/>
+        <activity android:name=".simultaneousdisplay.driver.DriverTaskActivity"/>
+        <!-- 地图的方法配置类-->
+        <activity android:name=".mapconfig.MapTaskActivity"/>
+
     </application>
 
 </manifest>

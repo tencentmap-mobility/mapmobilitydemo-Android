@@ -1,4 +1,4 @@
-package com.map.mapmobility.passenger;
+package com.map.mapmobility.simultaneousdisplay.passenger;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -61,19 +61,14 @@ public class PassengerTaskFragment extends Fragment
         tvCurrentMapPoint = mView.findViewById(R.id.tv_current_map_point_content);
         // 大头针布局
         liMapCenterLayout = mView.findViewById(R.id.li_map_center_marker);
+
+        mPresenter.start();
     }
 
     @Override
     public void onResume() {
         super.onResume();
         mapView.onResume();
-        mPresenter.start();
-        // 开始定位
-        mPresenter.startLocation();
-        // 开始司乘同显
-        mPresenter.startPassengerDriverSynchro();
-        // 司乘开始同步
-        mPresenter.isSyncEnable(true);
     }
 
     @Override

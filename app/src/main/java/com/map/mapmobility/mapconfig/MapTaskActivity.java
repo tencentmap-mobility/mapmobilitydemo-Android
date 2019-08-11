@@ -1,4 +1,4 @@
-package com.map.mapmobility.passenger;
+package com.map.mapmobility.mapconfig;
 
 import android.os.Bundle;
 
@@ -8,12 +8,13 @@ import com.map.mapmobility.BaseActivity;
 import com.map.mapmobility.R;
 
 /**
- *  这是乘客端
+ *  这是一个包含操作地图的方法配置类
+ *
  * @author mingjiezuo
  */
-public class PassengerTaskActivity extends BaseActivity {
+public class MapTaskActivity extends BaseActivity {
 
-    PassengerTaskFragment fragment;
+    MapTaskFragment fragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,13 +22,22 @@ public class PassengerTaskActivity extends BaseActivity {
         setContentView(R.layout.base_task_activity);
 
         FragmentManager manager = getSupportFragmentManager();
-        fragment = (PassengerTaskFragment)manager.findFragmentById(R.id.any_task_frame_layout);
+        fragment = (MapTaskFragment)manager.findFragmentById(R.id.any_task_frame_layout);
         if(fragment == null){
-            fragment = new PassengerTaskFragment();
+            fragment = new MapTaskFragment();
             manager.beginTransaction()
                     .add(R.id.any_task_frame_layout, fragment)
                     .commit();
         }
-        new PassengerTaskPresenter(fragment);
+        new MapTaskPresenter(fragment);
+    }
+
+    @Override
+    protected void onRestart() {
+        if(fragment != null){
+            fragment.onRestart();
+        }
+        super.onRestart();
     }
 }
+

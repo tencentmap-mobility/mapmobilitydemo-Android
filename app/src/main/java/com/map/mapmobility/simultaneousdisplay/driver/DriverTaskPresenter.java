@@ -1,11 +1,12 @@
-package com.map.mapmobility.driver;
+package com.map.mapmobility.simultaneousdisplay.driver;
 
 import android.graphics.Bitmap;
 import android.util.Log;
 
 import com.map.mapmobility.R;
-import com.map.mapmobility.heaper.Heaper;
-import com.map.mapmobility.utils.CommentUtil;
+import com.map.mapmobility.simultaneousdisplay.helper.ConvertHelper;
+import com.map.mapmobility.simultaneousdisplay.helper.SHelper;
+import com.map.mapmobility.utils.CommentUtils;
 import com.map.mapmobility.utils.ToastUtils;
 import com.tencent.map.geolocation.TencentLocation;
 import com.tencent.map.geolocation.TencentLocationListener;
@@ -43,6 +44,7 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
     private static final String LOG_TAG = "navi";
 
     private DriverTaskContract.IView mView;
+
     /** 导航manager*/
     private TencentCarNaviManager tencentCarNaviManager;
     /** 算路的配置类*/
@@ -57,7 +59,7 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
     /** 路线规划的起点*/
     private NaviPoi mFrmoLatlng = new NaviPoi(39.896532,116.321077);
     /** 路线规划的终点*/
-    private NaviPoi mToLatlng = new NaviPoi(40.040649,116.272401);
+    private NaviPoi mToLatlng = new NaviPoi(40.217123,116.291654);
     /** 途经点*/
     private ArrayList<NaviPoi> wayPoints = new ArrayList<>();
     /** 乘客的marker*/
@@ -80,7 +82,7 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
      *  STATUS_ORDER_SENT 订单状态-已派单 司机开始接驾
      *  STATUS_CHARGING_STARTED 订单状态-开始计费 司机开始送驾
      */
-    private int orderStatus = Order.STATUS_CHARGING_STARTED;
+    private int orderStatus = Order.STATUS_ORDER_SENT;
     /**
      *  司机服务状态
      *  DRIVER_STATUS_STOPPED 司机服务状态--停止接单 不接受派单
@@ -125,7 +127,7 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
      * @param carNaviView
      */
     @Override
-    public void initMap(CarNaviView carNaviView) {
+    public void initNaviManager(CarNaviView carNaviView) {
         tencentCarNaviManager = new TencentCarNaviManager(mView.getFragmentContext());
         tencentCarNaviManager.addNaviView(carNaviView);
         // 添加自定义INaviView事件回调
@@ -147,11 +149,8 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
         // 开始定位
         TencentLocationRequest request = TencentLocationRequest.create();
         request.setInterval(5000);
-        switch (mLocationManager.requestLocationUpdates(request, locationListener)){
-            case 0:
-                Log.d(LOG_TAG, "request location success");
-                break;
-        }
+        int error = mLocationManager.requestLocationUpdates(request, locationListener);
+        Log.d(LOG_TAG, "request location error"+error);
     }
 
     /**
@@ -347,28 +346,28 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
                         .addAll(routeData.getRoutePoints())
                         .width(width)
                         // 添加虚线colorTexture与lineType配合使用
-//                        .colorTexture(BitmapDescriptorFactory.fromAsset("tencentmap/navisdk/color_texture.png"))
 //                        .lineType(PolylineOptions.LineType.LINE_TYPE_IMAGEINARYLINE)
                         .color(0xff6cbe89)
                         .arrow(true);
                 Polyline polyline = mView.getTencentMap().addPolyline(options);
                 polylineList.add(polyline);
                 // 将路线显示在屏幕中央
-                Heaper.fitsWithRoute(mView.getTencentMap()
+                SHelper.fitsWithRoute(mView.getTencentMap()
                         , routeData.getRoutePoints()
-                        , CommentUtil.dip2px(mView.getFragmentContext(), 32)
-                        , CommentUtil.dip2px(mView.getFragmentContext(), 64)
-                        , CommentUtil.dip2px(mView.getFragmentContext(), 32)
-                        , CommentUtil.dip2px(mView.getFragmentContext(), 64));
+                        , CommentUtils.dip2px(mView.getFragmentContext(), 32)
+                        , CommentUtils.dip2px(mView.getFragmentContext(), 64)
+                        , CommentUtils.dip2px(mView.getFragmentContext(), 32)
+                        , CommentUtils.dip2px(mView.getFragmentContext(), 64));
                 // 更新司乘的order
                 routeId = routeData.getRouteId();
                 order.setRouteId(routeId);
+                order.setOrderStatus(orderStatus);
                 order.setTime(routeData.getTime());
                 // 上传路线
                 SynchroRoute synchroRoute = new SynchroRoute();
                 synchroRoute.setRouteId(routeId);
-                synchroRoute.setRoutePoints(Heaper.getRoutePoints(routeData));
-                synchroRoute.setTrafficItems(Heaper.getTrafficItems(routeData.getTrafficIndexList()));
+                synchroRoute.setRoutePoints(ConvertHelper.getRoutePoints(routeData));
+                synchroRoute.setTrafficItems(ConvertHelper.getTrafficItems(routeData.getTrafficIndexList()));
                 if(tencentLocusSynchro != null) {
                     tencentLocusSynchro.updateRoute(synchroRoute, order);
                 }
@@ -417,7 +416,7 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
         @Override
         public void onRouteUploadComplete() {
             // 路线上传成功。
-            Log.d(LOG_TAG, "onRouteUploadComplete()");
+            Log.e(LOG_TAG, "onRouteUploadComplete()");
         }
 
         @Override
@@ -429,7 +428,7 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
         @Override
         public void onLocationUploadComplete() {
             // 定位点上传成功
-            Log.d(LOG_TAG, "onLocationUploadComplete()");
+            Log.e(LOG_TAG, "onLocationUploadComplete()");
         }
     }
 
@@ -454,7 +453,28 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
 
         @Override
         public void onRecalculateRouteSuccess(int i, ArrayList<RouteData> arrayList) {
-
+            if(arrayList == null){
+                Log.e(LOG_TAG, "onRecalculateRouteSuccess : return list null");
+                return;
+            }
+            // 因为是demo，为了简单，只取第一个route date
+            if(arrayList.size() > 0) {
+                routeData = arrayList.get(0);
+                // 更新司乘的order
+                routeId = routeData.getRouteId();
+                order.setRouteId(routeId);
+                order.setOrderStatus(orderStatus);
+                order.setDriverStatus(driverStatus);
+                order.setTime(routeData.getTime());
+                // 上传路线
+                SynchroRoute synchroRoute = new SynchroRoute();
+                synchroRoute.setRouteId(routeId);
+                synchroRoute.setRoutePoints(ConvertHelper.getRoutePoints(routeData));
+                synchroRoute.setTrafficItems(ConvertHelper.getTrafficItems(routeData.getTrafficIndexList()));
+                if(tencentLocusSynchro != null) {
+                    tencentLocusSynchro.updateRoute(synchroRoute, order);
+                }
+            }
         }
 
         @Override
@@ -474,7 +494,7 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
 
         @Override
         public int onVoiceBroadcast(NaviTts naviTts) {
-            return 0;
+            return 1;
         }
 
         @Override
@@ -496,7 +516,11 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
         public void onUpdateAttachedLocation(AttachedLocation attachedLocation) {
             // 上传吸附点
             // 在导航中，吐给用户的吸附点不包含cityCode，所以需要通过定位sdk获取不断更新cityCode
-            SynchroLocation location = Heaper.convertToSynchroLocation(attachedLocation);
+            SynchroLocation location = ConvertHelper.convertToSynchroLocation(attachedLocation);
+            if(location == null){
+                Log.e(LOG_TAG, "onUpdateAttachedLocation SynchroLocation null");
+                return;
+            }
             if(cityCode != null && !cityCode.isEmpty()){
                 location.setCityCode(cityCode);
             }
@@ -540,7 +564,13 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
         @Override
         public void onUpdateTraffic(int i, int i1, ArrayList<TrafficItem> arrayList) {
             // 上传路线
-            tencentLocusSynchro.updateRoute(Heaper.getSynRoute(routeData), order);
+            if(arrayList.size() != 0){
+                SynchroRoute synchroRoute = new SynchroRoute();
+                synchroRoute.setRouteId(routeId);
+                synchroRoute.setRoutePoints(ConvertHelper.getRoutePoints(routeData));
+                synchroRoute.setTrafficItems(ConvertHelper.converTrafficTimes(arrayList));
+                tencentLocusSynchro.updateRoute(synchroRoute, order);
+            }
         }
     }
 

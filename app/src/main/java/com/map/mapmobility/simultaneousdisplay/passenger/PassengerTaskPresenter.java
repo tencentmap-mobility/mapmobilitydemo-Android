@@ -1,10 +1,12 @@
-package com.map.mapmobility.passenger;
+package com.map.mapmobility.simultaneousdisplay.passenger;
 
 import android.util.Log;
 
 import com.map.mapmobility.R;
-import com.map.mapmobility.heaper.Heaper;
-import com.map.mapmobility.utils.CommentUtil;
+import com.map.mapmobility.simultaneousdisplay.helper.ConvertHelper;
+import com.map.mapmobility.simultaneousdisplay.helper.SHelper;
+import com.map.mapmobility.ui.animation.CarSmoothMovement;
+import com.map.mapmobility.utils.CommentUtils;
 import com.map.mapmobility.utils.ToastUtils;
 import com.tencent.map.geolocation.TencentLocation;
 import com.tencent.map.geolocation.TencentLocationListener;
@@ -44,6 +46,8 @@ public class PassengerTaskPresenter implements PassengerTaskContract.IPresenter 
     private TencentLocusSynchro tencentLocusSynchro;
     /** 小车平滑移动*/
     private MarkerTranslateAnimator mTranslateAnimator;
+    /** 这是小车平滑的封装类*/
+    private CarSmoothMovement carSmoothMovement;
 
     /** 是否进行路线规划。规划了路线后则不能拖动地图选择上车点*/
     private boolean isHasRoute = false;
@@ -53,8 +57,6 @@ public class PassengerTaskPresenter implements PassengerTaskContract.IPresenter 
     private int currentZoomLevel = 17;
     /** 当前位置marker*/
     private Marker currentLocationMarker;
-    /** 司乘同显时，司机小车的marker*/
-    private Marker driverMarker;
     /** 当前展示的路线*/
     private Polyline polyline;
 
@@ -82,6 +84,12 @@ public class PassengerTaskPresenter implements PassengerTaskContract.IPresenter 
     @Override
     public void start() {
         ToastUtils.INSTANCE().init(mView.getFragmentContext());
+        // 开始定位
+        startLocation();
+        // 开始司乘同显
+        startPassengerDriverSynchro();
+        // 司乘开始同步
+        isSyncEnable(true);
     }
 
     @Override
@@ -91,6 +99,9 @@ public class PassengerTaskPresenter implements PassengerTaskContract.IPresenter 
         mLocationManager = null;
         locationListener = null;
         ToastUtils.INSTANCE().destory();
+        if(carSmoothMovement != null){
+            carSmoothMovement.destory();
+        }
     }
 
     /**
@@ -116,11 +127,8 @@ public class PassengerTaskPresenter implements PassengerTaskContract.IPresenter 
         // 开始定位
         TencentLocationRequest request = TencentLocationRequest.create();
         request.setInterval(5000);
-        switch (mLocationManager.requestLocationUpdates(request, locationListener)){
-            case 0:
-                Log.d(LOG_TAG, "request location success");
-                break;
-        }
+        int error = mLocationManager.requestLocationUpdates(request, locationListener);
+        Log.d(LOG_TAG, "request location error:"+error);
     }
 
     /**
@@ -250,7 +258,7 @@ public class PassengerTaskPresenter implements PassengerTaskContract.IPresenter 
             // 如果不需要此功能，乘客端无需上传定位点
             if (tencentLocusSynchro != null) {
                 tencentLocusSynchro.updateLocation
-                        (Heaper.convertToSynchroLocation(tencentLocation)
+                        (ConvertHelper.convertToSynchroLocation(tencentLocation)
                                 , new Order(orderId, orderStatus));
             }
             // 记录当前坐标，这是test展示
@@ -305,6 +313,12 @@ public class PassengerTaskPresenter implements PassengerTaskContract.IPresenter 
             }
             // 获取司机端的位置点串，注意：每次数量不定
             ArrayList<SynchroLocation> locations = syncData.getLocations();
+            if(locations != null && locations.size() != 0){
+                for(SynchroLocation location : locations){
+                    Log.e("navi", location.getAttachedLatitude()+"--"+location.getAttachedLongitude());
+                }
+            }
+
             // 当前司机端最新的latlng
             SynchroLocation firstLocation = null;
             LatLng fromPosition = null;
@@ -325,44 +339,10 @@ public class PassengerTaskPresenter implements PassengerTaskContract.IPresenter 
                     fromPosition = new LatLng(firstLocation.getLatitude()
                             , firstLocation.getLongitude());
                 }
-                // 展示小车图标
-                if (driverMarker == null) {
-                    driverMarker = mView.getTencentMap().addMarker(
-                            new MarkerOptions(fromPosition)
-                                    .anchor(0.5f, 0.5f)
-                                    .icon(BitmapDescriptorFactory.fromResource(R.mipmap.marker_taxi))
-                                    //设置此属性 marker 会跟随地图旋转
-                                    .flat(false)
-                                    //marker 逆时针方向旋转
-                                    .clockwise(true));
-                } else {
-                    driverMarker.setPosition(fromPosition);
-                    driverMarker.setRotation(firstLocation.getDirection());
-                }
-                driverMarker.setTitle("leftDistance:" + syncData.getOrder().getLeftDistance()
-                                + " leftTime:" + syncData.getOrder().getLeftTime());
-
             } else {
                 Log.e(LOG_TAG, "onSyncDataUpdated : syncData.getLocations() size 0");
             }
-            // 小车平滑移动
-            if(locations != null && locations.size() != 0){
-                /**
-                 *  MarkerTranslateAnimator
-                 *  Marker: 待平滑移动的marker
-                 *  int: 动画时间 ms
-                 *  ArrayList<Latlng>: 平移动画点串
-                 *  boolean: marker 是否会根据传入的点串计算并执行旋转动画, marker 方向将与移动方向保持一致
-                 */
-                LatLng[] latlngs = Heaper.getLatLngsBySynchroLocation(locations);
-                // 展示小车运动轨迹
-//                mView.getTencentMap().addPolyline(new PolylineOptions().add(latlngs));
-                mTranslateAnimator = new MarkerTranslateAnimator(driverMarker
-                        , 6 * 1000
-                        , latlngs
-                        , true);
-                mTranslateAnimator.startAnimation();
-            }
+
             // 获取司机路线
             ArrayList<LatLng> points = new ArrayList<>();
             int size = syncData.getRoute().getRoutePoints().size();
@@ -379,19 +359,21 @@ public class PassengerTaskPresenter implements PassengerTaskContract.IPresenter 
                     to = position;
                 }
             }
+
             // 添加起点、终点的marker
             // 只需要在路线展示的时候添加即可
             if(polyline == null){
                 addMarker(from, R.mipmap.navi_marker_start, 0, 0.5f, 1f);
                 addMarker(to, R.mipmap.line_real_end_point, 0,0.5f, 1f);
                 // 调整视图，使中心点为起点终点的中点
-                Heaper.fitsWithRoute(mView.getTencentMap()
-                        , Heaper.transformLatLngs(syncData.getRoute().getRoutePoints())
-                        , CommentUtil.dip2px(mView.getFragmentContext(), 32)
-                        , CommentUtil.dip2px(mView.getFragmentContext(), 64)
-                        , CommentUtil.dip2px(mView.getFragmentContext(), 32)
-                        , CommentUtil.dip2px(mView.getFragmentContext(), 64));
+                SHelper.fitsWithRoute(mView.getTencentMap()
+                        , ConvertHelper.transformLatLngs(syncData.getRoute().getRoutePoints())
+                        , CommentUtils.dip2px(mView.getFragmentContext(), 32)
+                        , CommentUtils.dip2px(mView.getFragmentContext(), 64)
+                        , CommentUtils.dip2px(mView.getFragmentContext(), 32)
+                        , CommentUtils.dip2px(mView.getFragmentContext(), 64));
             }
+
             // 绘制路线
             if (polyline == null) {
                 polyline = mView.getTencentMap().addPolyline
@@ -406,21 +388,36 @@ public class PassengerTaskPresenter implements PassengerTaskContract.IPresenter 
                     polyline.setPoints(points);
                 }
             }
+
             // 更新routedId
             if(syncData.getRoute() != null){
                 lastRouteId = syncData.getRoute().getRouteId();
             }
-            // 处理已经走过的路线
-            // 0: 置灰已走路线 1: 擦除已走路线
-            int eraseableType = 0;
-            polyline.setEraseable(eraseableType == 1);
-            SynchroLocation last = locations.get(locations.size()-1);
-            if(fromPosition != null && last.getAttachedIndex() != -1) {
-                polyline.eraseTo(last.getAttachedIndex(), fromPosition);
-            }
+
             // 绘制路线后，则不能拖动地图选择位置了
             isHasRoute = true;
             mView.showMapCenterMarker(false);
+
+            // 小车平滑移动
+            if(carSmoothMovement == null){
+                CarSmoothMovement.SmoothMovementOption option = new CarSmoothMovement.SmoothMovementOption();
+                option.maker(new MarkerOptions(fromPosition)
+                        .anchor(0.5f, 0.5f)
+                        .icon(BitmapDescriptorFactory.fromResource(R.mipmap.marker_taxi))
+                        //设置此属性 marker 会跟随地图旋转
+                        .flat(false)
+                        //marker 逆时针方向旋转
+                      .clockwise(true))
+                      .locations(locations)
+                      .duration(4950)
+                      .polyline(polyline)
+                      .isEraseLine(0);
+                carSmoothMovement = new CarSmoothMovement(option, mView.getTencentMap());
+                carSmoothMovement.startAnim();
+            }else{
+                carSmoothMovement.updatePoints(locations);
+                carSmoothMovement.startAnim();
+            }
         }
 
         @Override

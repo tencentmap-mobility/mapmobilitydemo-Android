@@ -5,7 +5,7 @@ import android.app.Application;
 
 
 public class MyApplication extends Application {
-    public static String TAG = "MAP_MOBILITY_DEMO__Tag";
+    public static String TAG = "MAP_MOBILITY_DEMO_Tag";
 
 
     @Override

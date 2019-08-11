@@ -6,7 +6,7 @@ android {
     defaultConfig {
         applicationId "com.map.mapmobility"
         minSdkVersion 15
-        targetSdkVersion 28
+        targetSdkVersion 26
         versionCode 1
         versionName "1.0"
 
@@ -37,22 +37,24 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
-    // 定位
+    // 定位sdk
     implementation files('libs/TencentLocationSdk_v6.2.5.3.jar')
-    // 地图
+    // 地图sdk
     implementation 'com.tencent.map:tencent-map-vector-sdk:4.2.5'
-    // 导航
+    // 导航sdk
     implementation(name: 'TencentNaviSDK_v5.1.0.1_MapSDK_v4.2.5', ext: 'aar')
-    // 司乘同显
+    // 司乘同显sdk
     implementation files('libs/TencentLocusSynchroSDK_v1.0.3_r1159_92c9e29d_release.jar')
-    // 小车平滑
+    // 小车平滑sdk
     implementation files('libs/TencentmapVectorUtils_v1.0.4.760b63d.jar')
-    // 动态权限
-    implementation 'pub.devrel:easypermissions:1.1.0'
+    // 周边车辆sdk，注意里面包含了小车平滑sdk
+//    implementation(name: 'tencentcarpreview-release', ext: 'aar')
     // recyclerView
-    implementation 'com.android.support:recyclerview-v7:+'
+    implementation 'androidx.recyclerview:recyclerview:1.0.0-alpha1'
     // bottom sheet
     implementation 'com.android.support:design:28.0.0'
+    // 动态权限
+    implementation 'pub.devrel:easypermissions:1.1.0'
     // 沉浸式状态栏
     compile 'com.gyf.immersionbar:immersionbar:2.3.1'
 }
