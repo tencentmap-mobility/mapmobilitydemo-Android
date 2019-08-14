@@ -28,7 +28,7 @@
         android:name=".MyApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
-        android:label="司乘同显demo"
+        android:label="腾讯出行"
         android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
@@ -58,6 +58,8 @@
         <activity android:name=".simultaneousdisplay.driver.DriverTaskActivity"/>
         <!-- 地图的方法配置类-->
         <activity android:name=".mapconfig.MapTaskActivity"/>
+        <!-- 周边车辆展示-->
+        <activity android:name=".carpreview.CarPreviewTaskActivity"/>
 
     </application>
 

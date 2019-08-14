@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.map.mapmobility.BaseActivity;
 import com.map.mapmobility.R;
+import com.map.mapmobility.carpreview.CarPreviewTaskActivity;
 import com.map.mapmobility.mapconfig.MapTaskActivity;
 import com.map.mapmobility.simultaneousdisplay.sdisplaypage.SimultaneousTaskActivity;
 import com.map.mapmobility.utils.ToastUtils;
@@ -99,7 +100,7 @@ public class MobilityTaskActivity extends BaseActivity
                 break;
             case CAR_PREVIEW:
                 // 周边车辆
-                ToastUtils.INSTANCE().Toast("功能待添加");
+                toIntent(CarPreviewTaskActivity.class);
                 break;
             case CAR_POI:
                 // 推荐上车点

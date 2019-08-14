@@ -47,8 +47,8 @@ dependencies {
     implementation files('libs/TencentLocusSynchroSDK_v1.0.3_r1159_92c9e29d_release.jar')
     // 小车平滑sdk
     implementation files('libs/TencentmapVectorUtils_v1.0.4.760b63d.jar')
-    // 周边车辆sdk，注意里面包含了小车平滑sdk
-//    implementation(name: 'tencentcarpreview-release', ext: 'aar')
+    // 周边车辆sdk
+    implementation(name: 'tencentcarpreview-release', ext: 'aar')
     // recyclerView
     implementation 'androidx.recyclerview:recyclerview:1.0.0-alpha1'
     // bottom sheet

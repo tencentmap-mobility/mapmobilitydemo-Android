@@ -1,4 +1,4 @@
-package com.map.mapmobility.mobilitypage;
+package com.map.mapmobility.carpreview;
 
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -14,41 +14,39 @@ import com.map.mapmobility.R;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
-/**
- *  腾讯出行sdk Demo功能列表
- *
- * @author mingjiezuo
- */
-public class MobilityPageRecyclerView extends RecyclerView.Adapter<MobilityPageRecyclerView.ViewHolder>{
+public class CarPreviewRecycler extends RecyclerView.Adapter<CarPreviewRecycler.ViewHolder>{
     public static final String LOG_TAG = "navi";
 
-    private ArrayList<String> mobilityDate = new ArrayList<>();
+    private ArrayList<String> carPreviewDate = new ArrayList<>();
 
     /** 外部的点击监听*/
-    private IClickListener clickListener;
+    private CarPreviewRecycler.IClickListener clickListener;
 
-    public MobilityPageRecyclerView(IClickListener listener) {
+    public CarPreviewRecycler(CarPreviewRecycler.IClickListener listener) {
         this.clickListener = listener;
 
-        if(mobilityDate.size() != 0)
-            mobilityDate.clear();
-        mobilityDate.add("地图helper");
-        mobilityDate.add("司乘同显");
-        mobilityDate.add("周边运力");
-        mobilityDate.add("推荐上车点");
+        if(carPreviewDate.size() != 0)
+            carPreviewDate.clear();
+        carPreviewDate.add("同时呼叫");
+        carPreviewDate.add("出租车");
+        carPreviewDate.add("新能源");
+        carPreviewDate.add("舒适型");
+        carPreviewDate.add("豪华型");
+        carPreviewDate.add("商务型");
+        carPreviewDate.add("经济型");
     }
 
     @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public CarPreviewRecycler.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.mobility_page_task_recycler_item, parent, false);
-        return new ViewHolder(view);
+                .inflate(R.layout.car_preview_task_recycler_item, parent, false);
+        return new CarPreviewRecycler.ViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        String content = mobilityDate.get(position);
+    public void onBindViewHolder(@NonNull CarPreviewRecycler.ViewHolder holder, int position) {
+        String content = carPreviewDate.get(position);
         holder.tvContent.setText(content);
 
         holder.listener.position = position;
@@ -58,26 +56,26 @@ public class MobilityPageRecyclerView extends RecyclerView.Adapter<MobilityPageR
 
     @Override
     public int getItemCount() {
-        return mobilityDate.size();
+        return carPreviewDate.size();
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {
-        MyClickListener listener = new MyClickListener();
+        CarPreviewRecycler.MyClickListener listener = new CarPreviewRecycler.MyClickListener();
 
         TextView tvContent;
 
         public ViewHolder(View view) {
             super(view);
-            tvContent = view.findViewById(R.id.tv_recycler_item_content);
+            tvContent = view.findViewById(R.id.tv_car_preview_recycler_view_item_content);
         }
     }
 
     class MyClickListener implements View.OnClickListener {
 
-        public WeakReference<ViewHolder> wrf;
+        public WeakReference<CarPreviewRecycler.ViewHolder> wrf;
         public int position;
 
-        public void setViewHolder(ViewHolder viewHolder) {
+        public void setViewHolder(CarPreviewRecycler.ViewHolder viewHolder) {
             wrf = new WeakReference<>(viewHolder);
         }
 

@@ -1,6 +1,7 @@
 package com.map.mapmobility.simultaneousdisplay.driver;
 
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.util.Log;
 
 import com.map.mapmobility.R;
@@ -342,13 +343,17 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
                         .getDisplayMetrics().density + 0.5);
                 routeData = arrayList.get(0);
                 // 没有显示路况，路况参考导航demo
-                PolylineOptions options = new PolylineOptions()
-                        .addAll(routeData.getRoutePoints())
+                PolylineOptions options = new PolylineOptions().addAll(routeData.getRoutePoints())
+                        .arrow(true)
                         .width(width)
-                        // 添加虚线colorTexture与lineType配合使用
-//                        .lineType(PolylineOptions.LineType.LINE_TYPE_IMAGEINARYLINE)
-                        .color(0xff6cbe89)
-                        .arrow(true);
+                        .color(Color.GREEN);
+//                // 设置虚线
+                ArrayList<Integer> l = new ArrayList<>();
+                // 虚线的实线部分长度
+                l.add(20);
+                // 虚线的空白部分长度
+                l.add(10);
+                options.pattern(l);
                 Polyline polyline = mView.getTencentMap().addPolyline(options);
                 polylineList.add(polyline);
                 // 将路线显示在屏幕中央
