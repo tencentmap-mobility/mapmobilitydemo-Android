@@ -41,6 +41,11 @@
         <meta-data
             android:name="com.tencent.map.locussynchro.api_key"
             android:value="xxx" />
+        <!-- 周边运力key-->
+        <meta-data
+            android:name="com.tencent.map.carpreview.api_key"
+            android:value="xxx"
+            />
 
         <activity android:name=".mobilitypage.MobilityTaskActivity">
             <intent-filter>

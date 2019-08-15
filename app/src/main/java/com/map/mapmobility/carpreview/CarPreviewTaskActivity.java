@@ -68,10 +68,6 @@ public class CarPreviewTaskActivity extends BaseActivity implements ICarPreView{
 
         previewMapManager = new PreviewMapManager();
         /**
-         * 导航、司乘、运力的key相同
-         */
-        previewMapManager.setKey("xxx");
-        /**
          * 默认请求车数，默认10个
          */
         previewMapManager.setCarsCount(10);
@@ -94,6 +90,19 @@ public class CarPreviewTaskActivity extends BaseActivity implements ICarPreView{
         types.add("5");
         types.add("6");
         previewMapManager.setCarsType(types);
+        /**
+         * 是否需要模拟车辆
+         */
+        previewMapManager.setMock(true);
+        /**
+         * 使用web service签名校验的方式（即不使用白名单）
+         *  xxx表示：SN校验的SecretKey (SK)
+         */
+//        previewMapManager.setWebServiceKey("xxx",true);
+        /**
+         * 隐藏定位大头针
+         */
+        mTencentCarsMap.hidePoiMaker();
         // 注意：需要在setCarsTypeResMap()与setCurrentLatLng()方法之前添加
         previewMapManager.attachCarsMap(mTencentCarsMap);
         /**
