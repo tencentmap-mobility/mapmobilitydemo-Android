@@ -103,6 +103,18 @@ public class CarPreviewTaskActivity extends BaseActivity implements ICarPreView{
          * 隐藏定位大头针
          */
         mTencentCarsMap.hidePoiMaker();
+        /**
+         * 显示定位大头针
+         */
+//        mTencentCarsMap.showPoiMaker();
+        /**
+         * 设置刷新时间，如果为0则不刷新
+         */
+        previewMapManager.startRefresh(0);
+        /**
+         * 停止刷新
+         */
+//        previewMapManager.stopRefresh();
         // 注意：需要在setCarsTypeResMap()与setCurrentLatLng()方法之前添加
         previewMapManager.attachCarsMap(mTencentCarsMap);
         /**
