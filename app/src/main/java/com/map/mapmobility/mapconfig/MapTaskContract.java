@@ -14,22 +14,14 @@ public class MapTaskContract {
     interface IPresenter extends BasePresenter {
 
         /**
-         * 初始化地图
+         * 显示罗盘与否
          */
-        void initMap(CarNaviView map);
+        void enableCompass(boolean isEnableCompass);
 
         /**
-         * 添加marker
+         * 关于location Source
          */
-        Marker addMarker(LatLng latLng, int markerId, float rotation);
-
-        /**
-         * 添加marker
-         * anchorX:锚点x
-         * anchorY:锚点y
-         */
-        Marker addMarker(LatLng latLng, int markerId, float rotation, float anchorX, float anchorY);
-
+        void enableAddMarkerWithLS(TencentMap map, boolean isEnableLocationSorce);
     }
 
     interface IView extends BaseView<MapTaskContract.IPresenter> {

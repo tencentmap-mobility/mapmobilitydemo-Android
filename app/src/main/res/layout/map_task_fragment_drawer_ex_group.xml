@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#e6e6e6"
+    >
+
+    <ImageView
+        android:id="@+id/map_task_img_ex_arrow"
+        android:layout_width="26dp"
+        android:layout_height="30dp"
+        android:layout_marginLeft="8dp"
+        android:layout_centerVertical="true"
+        android:background="@drawable/ex_selector"
+        />
+
+    <TextView
+        android:id="@+id/map_task_tv_recycler_item_title"
+        android:layout_width="match_parent"
+        android:layout_height="42dp"
+        android:gravity="center_vertical"
+        android:layout_toRightOf="@id/map_task_img_ex_arrow"
+        android:paddingLeft="2dp"
+        android:textColor="#707070"
+        android:textSize="15sp" />
+
+</RelativeLayout>

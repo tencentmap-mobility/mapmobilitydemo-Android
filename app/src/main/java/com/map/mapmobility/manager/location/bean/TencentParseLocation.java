@@ -10,7 +10,8 @@ public class TencentParseLocation extends ParseLocation<TencentLocation> {
         mapLocation.setLatitude(location.getLatitude());
         mapLocation.setLongitude(location.getLongitude());
         mapLocation.setCityCode(location.getCityCode());
-
+        mapLocation.setProvider(location.getProvider());
+        mapLocation.setBearing(location.getBearing());
         return mapLocation;
     }
 }

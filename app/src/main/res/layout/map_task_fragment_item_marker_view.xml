@@ -3,4 +3,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <TextView
+        android:id="@+id/tv_map_task_fragment_maker_view_content"
+        android:layout_width="75dp"
+        android:layout_height="40dp" />
+
 </LinearLayout>
