@@ -104,9 +104,9 @@ public class CarSmoothMovement {
                     location = pointCache.get(pointCache.size()-1);
                     LatLng latLng;
                     if(location.getAttachedLatitude() == 0 || location.getAttachedLongitude() == 0)
-                        latLng = new LatLng(location.getAttachedLatitude(), location.getAttachedLongitude());
-                    else
                         latLng = new LatLng(location.getLatitude(), location.getLongitude());
+                    else
+                        latLng = new LatLng(location.getAttachedLatitude(), location.getAttachedLongitude());
                     mOption.getPolyline().eraseTo
                             (pointCache.get(0).getAttachedIndex(), latLng);
                     pointCache.clear();
@@ -157,7 +157,11 @@ public class CarSmoothMovement {
                         if(pointCache.size() != 0 || pointCache.size() != 1){
                             // 擦除路线
                             SynchroLocation location = pointCache.get(1);
-                            LatLng latLng = new LatLng(location.getAltitude(), location.getLongitude());
+                            LatLng latLng;
+                            if(location.getAttachedLatitude() == 0 || location.getAttachedLongitude() == 0)
+                                latLng= new LatLng(location.getAltitude(), location.getLongitude());
+                            else
+                                latLng= new LatLng(location.getAttachedLatitude(), location.getAttachedLongitude());
                             mOption.getPolyline().eraseTo
                                     (pointCache.get(0).getAttachedIndex(), latLng);
                             synchronized (eraseLock){
