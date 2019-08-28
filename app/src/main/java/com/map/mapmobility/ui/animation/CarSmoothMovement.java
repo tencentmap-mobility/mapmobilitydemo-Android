@@ -102,7 +102,11 @@ public class CarSmoothMovement {
                 synchronized (eraseLock){
                     // 如果当前擦除还未结束，又有新串来，则直接擦除到最后
                     location = pointCache.get(pointCache.size()-1);
-                    LatLng latLng = new LatLng(location.getAltitude(), location.getLongitude());
+                    LatLng latLng;
+                    if(location.getAttachedLatitude() == 0 || location.getAttachedLongitude() == 0)
+                        latLng = new LatLng(location.getAttachedLatitude(), location.getAttachedLongitude());
+                    else
+                        latLng = new LatLng(location.getLatitude(), location.getLongitude());
                     mOption.getPolyline().eraseTo
                             (pointCache.get(0).getAttachedIndex(), latLng);
                     pointCache.clear();
