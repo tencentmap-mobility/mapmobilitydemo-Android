@@ -95,10 +95,14 @@ public class CarPreviewTaskActivity extends BaseActivity implements ICarPreView{
          */
         previewMapManager.setMock(true);
         /**
+         * 是否打印日志
+         */
+        previewMapManager.isOpenLog(true);
+        /**
          * 使用web service签名校验的方式（即不使用白名单）
          *  xxx表示：SN校验的SecretKey (SK)
          */
-//        previewMapManager.setWebServiceKey("xxx",true);
+        previewMapManager.setWebServiceKey("IQaEcTUvT6RaFOcOdcwzYIpQMMgSGd5W",true);
         /**
          * 隐藏定位大头针
          */
@@ -115,6 +119,10 @@ public class CarPreviewTaskActivity extends BaseActivity implements ICarPreView{
          * 停止刷新
          */
 //        previewMapManager.stopRefresh();
+        /**
+         * 结束运力
+         */
+        previewMapManager.isNearCarShow(false);
         // 注意：需要在setCarsTypeResMap()与setCurrentLatLng()方法之前添加
         previewMapManager.attachCarsMap(mTencentCarsMap);
         /**

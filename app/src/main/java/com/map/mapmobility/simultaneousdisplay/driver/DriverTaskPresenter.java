@@ -573,7 +573,7 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
                 SynchroRoute synchroRoute = new SynchroRoute();
                 synchroRoute.setRouteId(routeId);
                 synchroRoute.setRoutePoints(ConvertHelper.getRoutePoints(routeData));
-                synchroRoute.setTrafficItems(ConvertHelper.converTrafficTimes(arrayList));
+                synchroRoute.setTrafficItems(ConvertHelper.converTrafficItems(arrayList));
                 tencentLocusSynchro.updateRoute(synchroRoute, order);
             }
         }

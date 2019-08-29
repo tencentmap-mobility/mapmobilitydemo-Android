@@ -24,20 +24,38 @@ public class SHelper {
         if(locations == null){
             return null;
         }
+        for(int i=locations.size()-1; i>=0; i--){
+            SynchroLocation l = locations.get(i);
+            // 剔除掉吸附失败的点，会造成角度偏差
+            if(l.getAttachedIndex() == -1){
+                locations.remove(i);
+            }
+        }
         int size = locations.size();
         com.tencent.tencentmap.mapsdk.maps.model.LatLng[] latLngs =
                 new com.tencent.tencentmap.mapsdk.maps.model.LatLng[size];
         for(int i=0; i<size; i++){
-            if(locations.get(i).getAttachedIndex() != -1){
-                latLngs[i] = new com.tencent.tencentmap.mapsdk.maps.model.LatLng
-                        (locations.get(i).getAttachedLatitude()
-                                , locations.get(i).getAttachedLongitude());
-            }else{
-                latLngs[i] = new com.tencent.tencentmap.mapsdk.maps.model.LatLng
-                        (locations.get(i).getAltitude(), locations.get(i).getLongitude());
-            }
+            latLngs[i] = new com.tencent.tencentmap.mapsdk.maps.model.LatLng
+                    (locations.get(i).getAttachedLatitude()
+                            , locations.get(i).getAttachedLongitude());
         }
         return latLngs;
+    }
+
+    public static com.tencent.tencentmap.mapsdk.maps.model.LatLng[]
+            addLalng(com.tencent.tencentmap.mapsdk.maps.model.LatLng[] latLngs
+                , com.tencent.tencentmap.mapsdk.maps.model.LatLng latLng) {
+        if(latLngs == null)
+            return null;
+        int size = latLngs.length + 1;
+        com.tencent.tencentmap.mapsdk.maps.model.LatLng[] ls = new com.tencent.tencentmap.mapsdk.maps.model.LatLng[size];
+        for(int index = 0; index < size; index++){
+            if(index == 0)
+                ls[0] = latLng;
+            else
+                ls[index] = latLngs[index-1];
+        }
+        return ls;
     }
 
     /**

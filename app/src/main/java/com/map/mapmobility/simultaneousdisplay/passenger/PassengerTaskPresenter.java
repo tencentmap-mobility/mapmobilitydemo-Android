@@ -311,13 +311,12 @@ public class PassengerTaskPresenter implements PassengerTaskContract.IPresenter 
                 Log.e(LOG_TAG, "onSyncDataUpdated : syncData null");
                 return;
             }
+            // 更新订单状态
+            if(syncData.getOrder() != null)
+                orderStatus = syncData.getOrder().getOrderStatus();
+
             // 获取司机端的位置点串，注意：每次数量不定
             ArrayList<SynchroLocation> locations = syncData.getLocations();
-            if(locations != null && locations.size() != 0){
-                for(SynchroLocation location : locations){
-                    Log.e("navi", location.getAttachedLatitude()+"--"+location.getAttachedLongitude());
-                }
-            }
 
             // 当前司机端最新的latlng
             SynchroLocation firstLocation = null;
@@ -341,6 +340,7 @@ public class PassengerTaskPresenter implements PassengerTaskContract.IPresenter 
                 }
             } else {
                 Log.e(LOG_TAG, "onSyncDataUpdated : syncData.getLocations() size 0");
+                return;
             }
 
             // 获取司机路线
@@ -405,9 +405,9 @@ public class PassengerTaskPresenter implements PassengerTaskContract.IPresenter 
                         .anchor(0.5f, 0.5f)
                         .icon(BitmapDescriptorFactory.fromResource(R.mipmap.marker_taxi))
                         //设置此属性 marker 会跟随地图旋转
-                        .flat(false)
+                        .flat(true)
                         //marker 逆时针方向旋转
-                      .clockwise(true))
+                      .clockwise(false))
                       .locations(locations)
                       .duration(4950)
                       .polyline(polyline)

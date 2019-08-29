@@ -42,7 +42,7 @@ dependencies {
     // 地图sdk
     implementation 'com.tencent.map:tencent-map-vector-sdk:4.2.5'
     // 导航sdk
-    implementation(name: 'TencentNaviSDK_v5.1.0.1_MapSDK_v4.2.5', ext: 'aar')
+    implementation(name: 'TencentNaviSDK_v5.1.0.1_r1163_50cf82e2_release', ext: 'aar')
     // 司乘同显sdk
     implementation files('libs/TencentLocusSynchroSDK_v1.0.3_r1159_92c9e29d_release.jar')
     // 小车平滑sdk

@@ -7,6 +7,7 @@ import android.os.Message;
 import android.util.Log;
 
 import com.map.mapmobility.simultaneousdisplay.helper.SHelper;
+import com.tencent.map.carpreview.utils.CarPreviewUtils;
 import com.tencent.map.locussynchro.model.SynchroLocation;
 import com.tencent.tencentmap.mapsdk.maps.TencentMap;
 import com.tencent.tencentmap.mapsdk.maps.model.LatLng;
@@ -31,6 +32,8 @@ public class CarSmoothMovement {
 
     /** 将未走过的点串信息缓存下来*/
     private ArrayList<SynchroLocation> pointCache = new ArrayList<>();
+    /** 每次缓存最后一个点，要和下一次的点做角度计算*/
+    private LatLng lastLatlng;
 
     /**
      * 开始一个线程轮询不断擦除小车运动轨迹
@@ -79,10 +82,17 @@ public class CarSmoothMovement {
             Log.e(LOG_TAG,"smooth movement has lat and lng null or size 0");
             return;
         }
+        if(lastLatlng != null)
+            latLngs = SHelper.addLalng(latLngs, lastLatlng);
         // 添加小车图标
         SynchroLocation location = mOption.getLocations().get(0);
-        addCarMarker(latLngs[0], location.getRoadDirection() == -1
-                ? location.getDirection():location.getRoadDirection());
+        float direction = location.getDirection() != -1
+                ? location.getDirection():location.getRoadDirection();
+        if(lastLatlng != null)
+            direction = CarPreviewUtils.getDirection(lastLatlng,latLngs[0]);
+        addCarMarker(latLngs[0], direction);
+        // 将最后一个吸附点缓存下来
+        lastLatlng = latLngs[latLngs.length-1];
         // 使用平滑移动sdk
         markerAnim = new MarkerTranslateAnimator(carMarker
                 , mOption.getDuration()
@@ -101,12 +111,7 @@ public class CarSmoothMovement {
             if(pointCache.size() > 0){
                 synchronized (eraseLock){
                     // 如果当前擦除还未结束，又有新串来，则直接擦除到最后
-                    location = pointCache.get(pointCache.size()-1);
-                    LatLng latLng;
-                    if(location.getAttachedLatitude() == 0 || location.getAttachedLongitude() == 0)
-                        latLng = new LatLng(location.getLatitude(), location.getLongitude());
-                    else
-                        latLng = new LatLng(location.getAttachedLatitude(), location.getAttachedLongitude());
+                    LatLng latLng = converLatlng(pointCache.get(pointCache.size()-1));
                     mOption.getPolyline().eraseTo
                             (pointCache.get(0).getAttachedIndex(), latLng);
                     pointCache.clear();
@@ -156,12 +161,7 @@ public class CarSmoothMovement {
                     case ERASE_MSG:
                         if(pointCache.size() != 0 || pointCache.size() != 1){
                             // 擦除路线
-                            SynchroLocation location = pointCache.get(1);
-                            LatLng latLng;
-                            if(location.getAttachedLatitude() == 0 || location.getAttachedLongitude() == 0)
-                                latLng= new LatLng(location.getAltitude(), location.getLongitude());
-                            else
-                                latLng= new LatLng(location.getAttachedLatitude(), location.getAttachedLongitude());
+                            LatLng latLng = converLatlng(pointCache.get(1));
                             mOption.getPolyline().eraseTo
                                     (pointCache.get(0).getAttachedIndex(), latLng);
                             synchronized (eraseLock){
@@ -172,7 +172,7 @@ public class CarSmoothMovement {
                         }else{
                             if(pointCache.size()>0){
                                 SynchroLocation last = pointCache.get(pointCache.size()-1);
-                                addCarMarker(null, last.getRoadDirection() == -1
+                                addCarMarker(null, last.getDirection() != -1
                                         ? last.getDirection() : last.getRoadDirection());
                             }
                             stopErase();
@@ -195,6 +195,15 @@ public class CarSmoothMovement {
             }
             carMarker.setRotation(direction);
         }
+    }
+
+    private LatLng converLatlng(SynchroLocation location) {
+        LatLng latLng;
+        if(location.getAttachedLatitude() == 0 || location.getAttachedLongitude() == 0)
+            latLng= new LatLng(location.getAltitude(), location.getLongitude());
+        else
+            latLng= new LatLng(location.getAttachedLatitude(), location.getAttachedLongitude());
+        return latLng;
     }
 
     public static class SmoothMovementOption {

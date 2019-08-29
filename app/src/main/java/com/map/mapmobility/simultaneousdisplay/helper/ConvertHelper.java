@@ -137,7 +137,7 @@ public class ConvertHelper {
      * @param arrayList
      * @return
      */
-    public static ArrayList<com.tencent.map.locussynchro.model.TrafficItem> converTrafficTimes
+    public static ArrayList<com.tencent.map.locussynchro.model.TrafficItem> converTrafficItems
             (ArrayList<TrafficItem> arrayList) {
         ArrayList<com.tencent.map.locussynchro.model.TrafficItem> result = new ArrayList<>();
         for (int i = 0; i < arrayList.size(); i++) {
