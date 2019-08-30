@@ -58,6 +58,23 @@ public class SHelper {
         return ls;
     }
 
+    public static com.tencent.tencentmap.mapsdk.maps.model.LatLng
+            getFromSynLocation(ArrayList<SynchroLocation> latLngs) {
+        if(latLngs != null && latLngs.size() != 0){
+            SynchroLocation fromSynLatlng = latLngs.get(0);
+            if(fromSynLatlng == null)
+                return null;
+            LatLng fromLatlng;
+            if(fromSynLatlng.getAttachedIndex() == -1){
+                fromLatlng = new LatLng(fromSynLatlng.getLatitude(), fromSynLatlng.getLongitude());
+            }else{
+                fromLatlng = new LatLng(fromSynLatlng.getAttachedLatitude(), fromSynLatlng.getAttachedLongitude());
+            }
+            return fromLatlng;
+        }
+        return null;
+    }
+
     /**
      * 缩放至整条路线都在可视区域内
      *

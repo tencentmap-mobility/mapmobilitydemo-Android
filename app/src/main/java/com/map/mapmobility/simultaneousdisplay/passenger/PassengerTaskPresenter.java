@@ -1,6 +1,8 @@
 package com.map.mapmobility.simultaneousdisplay.passenger;
 
 import android.util.Log;
+import android.view.View;
+import android.widget.TextView;
 
 import com.map.mapmobility.R;
 import com.map.mapmobility.simultaneousdisplay.helper.ConvertHelper;
@@ -48,6 +50,8 @@ public class PassengerTaskPresenter implements PassengerTaskContract.IPresenter 
     private MarkerTranslateAnimator mTranslateAnimator;
     /** 这是小车平滑的封装类*/
     private CarSmoothMovement carSmoothMovement;
+    /** 小车平滑移动的配置类*/
+    private CarSmoothMovement.SmoothMovementOption option;
 
     /** 是否进行路线规划。规划了路线后则不能拖动地图选择上车点*/
     private boolean isHasRoute = false;
@@ -245,6 +249,37 @@ public class PassengerTaskPresenter implements PassengerTaskContract.IPresenter 
         }
     }
 
+    private void addInfoWindow(Marker marker) {
+        mView.getTencentMap().setInfoWindowAdapter(infoWindowAdapter);
+        if(option == null)
+            return;
+        marker.showInfoWindow();
+        marker.refreshInfoWindow();
+    }
+
+    TencentMap.InfoWindowAdapter infoWindowAdapter = new TencentMap.InfoWindowAdapter() {
+
+        View infoView;
+        TextView content;
+
+        @Override
+        public View getInfoWindow(Marker marker) {
+            if(marker != null && option != null && marker.equals(option.getMarker())) {
+                infoView = View.inflate(mView.getFragmentContext()
+                        , R.layout.passenger_task_fragment_item_info_window
+                        , null);
+                content = infoView.findViewById(R.id.info_window_content);
+                content.setText(marker.getTitle() != null ? marker.getTitle() : "null");
+                return infoView;
+            }
+            return null;
+        }
+        @Override
+        public View getInfoContents(Marker marker) {
+            return null;
+        }
+    };
+
     class MyLocationListener implements TencentLocationListener {
         @Override
         public void onLocationChanged(TencentLocation tencentLocation, int i, String s) {
@@ -311,7 +346,7 @@ public class PassengerTaskPresenter implements PassengerTaskContract.IPresenter 
                 Log.e(LOG_TAG, "onSyncDataUpdated : syncData null");
                 return;
             }
-            // 更新订单状态
+            // 更新订单状态，只是为了测试方便。正常逻辑，以业务层实际订单状态为准
             if(syncData.getOrder() != null)
                 orderStatus = syncData.getOrder().getOrderStatus();
 
@@ -319,29 +354,9 @@ public class PassengerTaskPresenter implements PassengerTaskContract.IPresenter 
             ArrayList<SynchroLocation> locations = syncData.getLocations();
 
             // 当前司机端最新的latlng
-            SynchroLocation firstLocation = null;
-            LatLng fromPosition = null;
-            if (locations.size() > 0) {
-                // 司机的位置，相对于乘客来说，已经走过的点串，last是当前小车的位置（无动画时）
-                // 在接驾场景中
-                firstLocation = locations.get(0);
-                if(firstLocation == null){
-                    Log.i(LOG_TAG, "syncData.getLocations() first location null");
-                    return;
-                }
-                // 定位点吸附成功
-                if(firstLocation.getAttachedIndex() != -1) {
-                    fromPosition = new LatLng(firstLocation.getAttachedLatitude()
-                            , firstLocation.getAttachedLongitude());
-                }else{
-                    // 注意：因为没吸附成功，所以会飘到路外
-                    fromPosition = new LatLng(firstLocation.getLatitude()
-                            , firstLocation.getLongitude());
-                }
-            } else {
-                Log.e(LOG_TAG, "onSyncDataUpdated : syncData.getLocations() size 0");
+            LatLng fromPosition = SHelper.getFromSynLocation(locations);
+            if(fromPosition == null)
                 return;
-            }
 
             // 获取司机路线
             ArrayList<LatLng> points = new ArrayList<>();
@@ -372,16 +387,13 @@ public class PassengerTaskPresenter implements PassengerTaskContract.IPresenter 
                         , CommentUtils.dip2px(mView.getFragmentContext(), 64)
                         , CommentUtils.dip2px(mView.getFragmentContext(), 32)
                         , CommentUtils.dip2px(mView.getFragmentContext(), 64));
-            }
 
-            // 绘制路线
-            if (polyline == null) {
                 polyline = mView.getTencentMap().addPolyline
                         (new PolylineOptions()
                                 .latLngs(points)
                                 .color(0xff6cbe89)
                                 .arrow(true));
-            } else {
+            }else{
                 if(syncData.getRoute() != null
                         && syncData.getRoute().getRouteId() != null
                         && !syncData.getRoute().getRouteId().equals(lastRouteId)){
@@ -394,13 +406,9 @@ public class PassengerTaskPresenter implements PassengerTaskContract.IPresenter 
                 lastRouteId = syncData.getRoute().getRouteId();
             }
 
-            // 绘制路线后，则不能拖动地图选择位置了
-            isHasRoute = true;
-            mView.showMapCenterMarker(false);
-
             // 小车平滑移动
             if(carSmoothMovement == null){
-                CarSmoothMovement.SmoothMovementOption option = new CarSmoothMovement.SmoothMovementOption();
+                option = new CarSmoothMovement.SmoothMovementOption();
                 option.maker(new MarkerOptions(fromPosition)
                         .anchor(0.5f, 0.5f)
                         .icon(BitmapDescriptorFactory.fromResource(R.mipmap.marker_taxi))
@@ -418,6 +426,17 @@ public class PassengerTaskPresenter implements PassengerTaskContract.IPresenter 
                 carSmoothMovement.updatePoints(locations);
                 carSmoothMovement.startAnim();
             }
+
+            // 给小车marker添加infoWindow
+            addInfoWindow(option.getMarker());
+
+            // 设置标题
+            if(option.getMarker() != null)
+                option.getMarker().setTitle("剩余里程和时间");
+
+            // 绘制路线后，则不能拖动地图选择位置了
+            isHasRoute = true;
+            mView.showMapCenterMarker(false);
         }
 
         @Override

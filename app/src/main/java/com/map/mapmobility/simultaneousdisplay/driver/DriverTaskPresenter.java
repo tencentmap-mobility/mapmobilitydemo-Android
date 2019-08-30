@@ -343,17 +343,18 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
                         .getDisplayMetrics().density + 0.5);
                 routeData = arrayList.get(0);
                 // 没有显示路况，路况参考导航demo
-                PolylineOptions options = new PolylineOptions().addAll(routeData.getRoutePoints())
-                        .arrow(true)
+                PolylineOptions options = new PolylineOptions()
+                        .addAll(routeData.getRoutePoints())
                         .width(width)
-                        .color(Color.GREEN);
-//                // 设置虚线
-                ArrayList<Integer> l = new ArrayList<>();
-                // 虚线的实线部分长度
-                l.add(20);
-                // 虚线的空白部分长度
-                l.add(10);
-                options.pattern(l);
+                        .lineType(PolylineOptions.LineType.LINE_TYPE_DOTTEDLINE)
+                        .colorTexture(BitmapDescriptorFactory.fromResource(R.mipmap.bule_icon));
+                // 设置虚线
+//                ArrayList<Integer> l = new ArrayList<>();
+//                // 虚线的实线部分长度
+//                l.add(20);
+//                // 虚线的空白部分长度
+//                l.add(10);
+//                options.pattern(l);
                 Polyline polyline = mView.getTencentMap().addPolyline(options);
                 polylineList.add(polyline);
                 // 将路线显示在屏幕中央

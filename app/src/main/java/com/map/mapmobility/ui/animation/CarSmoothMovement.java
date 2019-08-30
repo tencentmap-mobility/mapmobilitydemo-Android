@@ -54,7 +54,7 @@ public class CarSmoothMovement {
     /** 操作的地图类*/
     TencentMap map;
     /** 当前小车的图标*/
-    Marker carMarker;
+    static Marker carMarker;
 
     public CarSmoothMovement(SmoothMovementOption option, TencentMap map) {
         this.mOption = option;
@@ -144,6 +144,7 @@ public class CarSmoothMovement {
             eraseThread = null;
             mOption =  null;
             markerAnim = null;
+            carMarker = null;
         }
     }
 
@@ -290,6 +291,12 @@ public class CarSmoothMovement {
 
         public ArrayList<SynchroLocation> getLocations() {
             return locations;
+        }
+
+        public Marker getMarker() {
+            if(carMarkerOptions == null)
+                return null;
+            return carMarker;
         }
     }
 }
