@@ -589,11 +589,17 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
             }
             // 不断获取并更新cityCode
             cityCode = tencentLocation.getCityCode();
+
+            if (tencentCarNaviManager != null) {
+                tencentCarNaviManager.updateLocation(SHelper.convertToGpsLocation(tencentLocation), 0, "");
+            }
         }
 
         @Override
-        public void onStatusUpdate(String s, int i, String s1) {
-
+        public void onStatusUpdate(String name, int status, String desc) {
+            if (tencentCarNaviManager != null) {
+                tencentCarNaviManager.updateGpsStatus(name, status, desc);
+            }
         }
     }
 

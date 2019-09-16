@@ -350,13 +350,10 @@ public class PassengerTaskPresenter implements PassengerTaskContract.IPresenter 
             if(syncData.getOrder() != null)
                 orderStatus = syncData.getOrder().getOrderStatus();
 
-            // 获取司机端的位置点串，注意：每次数量不定
-            ArrayList<SynchroLocation> locations = syncData.getLocations();
-
-            // 当前司机端最新的latlng
-            LatLng fromPosition = SHelper.getFromSynLocation(locations);
-            if(fromPosition == null)
-                return;
+            // 更新routedId
+            if(syncData.getRoute() != null){
+                lastRouteId = syncData.getRoute().getRouteId();
+            }
 
             // 获取司机路线
             ArrayList<LatLng> points = new ArrayList<>();
@@ -401,10 +398,13 @@ public class PassengerTaskPresenter implements PassengerTaskContract.IPresenter 
                 }
             }
 
-            // 更新routedId
-            if(syncData.getRoute() != null){
-                lastRouteId = syncData.getRoute().getRouteId();
-            }
+            // 获取司机端的位置点串，注意：每次数量不定
+            ArrayList<SynchroLocation> locations = syncData.getLocations();
+
+            // 当前司机端最新的latlng
+            LatLng fromPosition = SHelper.getFromSynLocation(locations);
+            if(fromPosition == null)
+                return;
 
             // 小车平滑移动
             if(carSmoothMovement == null){

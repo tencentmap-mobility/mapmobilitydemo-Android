@@ -1,5 +1,6 @@
 package com.map.mapmobility.ui.animation;
 
+import android.animation.Animator;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
@@ -47,6 +48,8 @@ public class CarSmoothMovement {
 
     /** 动画的参数配置类*/
     SmoothMovementOption mOption;
+    /** 当前小车动画的监听*/
+    MyAnimListener mListener;
 
     /** 这是是小车平滑组件类*/
     MarkerTranslateAnimator markerAnim;
@@ -59,6 +62,7 @@ public class CarSmoothMovement {
     public CarSmoothMovement(SmoothMovementOption option, TencentMap map) {
         this.mOption = option;
         this.map = map;
+        mListener = new MyAnimListener();
 
         if(mOption.getEraseLineType() != -1){
             // 初始化轮询线程
@@ -82,8 +86,14 @@ public class CarSmoothMovement {
             Log.e(LOG_TAG,"smooth movement has lat and lng null or size 0");
             return;
         }
-        if(lastLatlng != null)
+        // 剔除掉重复数据
+        latLngs = SHelper.removeRepeat(latLngs);
+        if(lastLatlng != null){
+            // 如果司机静止，如果传的点一样，则过滤掉
+            if(latLngs.length == 1 && lastLatlng.equals(latLngs[0]))
+                return;
             latLngs = SHelper.addLalng(latLngs, lastLatlng);
+        }
         // 添加小车图标
         SynchroLocation location = mOption.getLocations().get(0);
         float direction = location.getDirection() != -1
@@ -99,6 +109,14 @@ public class CarSmoothMovement {
                 , latLngs
                 , true);
         markerAnim.startAnimation();
+        // 设置最终点的角度
+        int size = latLngs.length;
+        if(size > 1)
+            mListener.setDirection(CarPreviewUtils
+                    .getDirection(latLngs[size - 2],latLngs[size - 1]));
+        else
+            mListener.setDirection(-1);
+        markerAnim.addAnimatorListener(mListener);
         // 擦除已经走过的轨迹
         if(mOption.getEraseLineType() != -1) {
             // 动画持续时间
@@ -145,6 +163,36 @@ public class CarSmoothMovement {
             mOption =  null;
             markerAnim = null;
             carMarker = null;
+        }
+    }
+
+    class MyAnimListener implements Animator.AnimatorListener {
+        private float mDirection = -1;
+
+        public void setDirection(float direction) {
+            mDirection = direction;
+        }
+
+        @Override
+        public void onAnimationStart(Animator animation) {
+
+        }
+
+        @Override
+        public void onAnimationEnd(Animator animation) {
+            // 当动画停止的时候，做次方向校验
+            if(mDirection != -1)
+                addCarMarker(null, mDirection);
+        }
+
+        @Override
+        public void onAnimationCancel(Animator animation) {
+
+        }
+
+        @Override
+        public void onAnimationRepeat(Animator animation) {
+
         }
     }
 

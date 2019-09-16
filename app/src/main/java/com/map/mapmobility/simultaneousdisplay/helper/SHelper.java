@@ -2,7 +2,9 @@ package com.map.mapmobility.simultaneousdisplay.helper;
 
 import android.os.Handler;
 
+import com.tencent.map.geolocation.TencentLocation;
 import com.tencent.map.locussynchro.model.SynchroLocation;
+import com.tencent.map.navi.data.GpsLocation;
 import com.tencent.tencentmap.mapsdk.maps.CameraUpdateFactory;
 import com.tencent.tencentmap.mapsdk.maps.TencentMap;
 import com.tencent.tencentmap.mapsdk.maps.model.LatLng;
@@ -73,6 +75,43 @@ public class SHelper {
             return fromLatlng;
         }
         return null;
+    }
+
+    public static GpsLocation convertToGpsLocation(TencentLocation tencentLocation) {
+        if (tencentLocation == null) {
+            return null;
+        }
+        GpsLocation location = new GpsLocation();
+        location.setDirection(tencentLocation.getBearing());
+        location.setAccuracy(tencentLocation.getAccuracy());
+        location.setLatitude(tencentLocation.getLatitude());
+        location.setLongitude(tencentLocation.getLongitude());
+        location.setAltitude(tencentLocation.getAltitude());
+        location.setProvider(tencentLocation.getProvider());
+        location.setVelocity(tencentLocation.getSpeed());
+        location.setTime(tencentLocation.getTime());
+        location.setGpsRssi(tencentLocation.getGPSRssi());
+
+        return location;
+    }
+
+    /**
+     *  剔除掉重复数据
+     */
+    public static com.tencent.tencentmap.mapsdk.maps.model.LatLng[]
+            removeRepeat(com.tencent.tencentmap.mapsdk.maps.model.LatLng[] latLngs) {
+        ArrayList<LatLng> list = new ArrayList<>();
+        for(LatLng latLng : latLngs){
+            if(!list.contains(latLng))
+                list.add(latLng);
+        }
+        LatLng[] ls = new LatLng[list.size()];
+        int listIndex = 0;
+        for(LatLng latLng : list) {
+            ls[listIndex] = latLng;
+            listIndex ++;
+        }
+        return ls;
     }
 
     /**
