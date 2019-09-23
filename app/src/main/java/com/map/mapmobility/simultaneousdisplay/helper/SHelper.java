@@ -44,6 +44,20 @@ public class SHelper {
         return latLngs;
     }
 
+    public static ArrayList<SynchroLocation> getLocationsWithOutAttachFail(ArrayList<SynchroLocation> locations) {
+        if(locations == null){
+            return null;
+        }
+        for(int i=locations.size()-1; i>=0; i--){
+            SynchroLocation l = locations.get(i);
+            // 剔除掉吸附失败的点，会造成角度偏差
+            if(l.getAttachedIndex() == -1){
+                locations.remove(i);
+            }
+        }
+        return locations;
+    }
+
     public static com.tencent.tencentmap.mapsdk.maps.model.LatLng[]
             addLalng(com.tencent.tencentmap.mapsdk.maps.model.LatLng[] latLngs
                 , com.tencent.tencentmap.mapsdk.maps.model.LatLng latLng) {

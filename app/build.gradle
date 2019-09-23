@@ -40,11 +40,11 @@ dependencies {
     // 定位sdk
     implementation files('libs/TencentLocationSdk_v6.2.5.3.jar')
     // 地图sdk
-    implementation 'com.tencent.map:tencent-map-vector-sdk:4.2.5'
+    implementation 'com.tencent.map:tencent-map-vector-sdk:4.2.7'
     // 导航sdk
-    implementation(name: 'TencentNaviSDK_v5.1.0.1_r1163_50cf82e2_release', ext: 'aar')
+    implementation(name: 'TencentNaviSDK_v5.1.2_r1223_3e5f5813_release', ext: 'aar')
     // 司乘同显sdk
-    implementation files('libs/TencentLocusSynchroSDK_v1.0.3_r1159_92c9e29d_release.jar')
+    implementation files('libs/TencentLocusSynchroSDK_v1.0.4_r1223_3e5f5813_release.jar')
     // 小车平滑sdk
     implementation files('libs/TencentmapVectorUtils_v1.0.4.760b63d.jar')
     // 周边车辆sdk

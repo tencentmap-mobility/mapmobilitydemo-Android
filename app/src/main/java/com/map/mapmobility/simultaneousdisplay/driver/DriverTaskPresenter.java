@@ -36,6 +36,7 @@ import com.tencent.tencentmap.mapsdk.maps.model.BitmapDescriptorFactory;
 import com.tencent.tencentmap.mapsdk.maps.model.LatLng;
 import com.tencent.tencentmap.mapsdk.maps.model.Marker;
 import com.tencent.tencentmap.mapsdk.maps.model.MarkerOptions;
+import com.tencent.tencentmap.mapsdk.maps.model.OverlayLevel;
 import com.tencent.tencentmap.mapsdk.maps.model.Polyline;
 import com.tencent.tencentmap.mapsdk.maps.model.PolylineOptions;
 
@@ -58,9 +59,9 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
     private TencentLocationListener locationListener;
 
     /** 路线规划的起点*/
-    private NaviPoi mFrmoLatlng = new NaviPoi(39.896532,116.321077);
+    private NaviPoi mFrmoLatlng = new NaviPoi(22.588968,113.863332);
     /** 路线规划的终点*/
-    private NaviPoi mToLatlng = new NaviPoi(40.217123,116.291654);
+    private NaviPoi mToLatlng = new NaviPoi(22.600728,113.847116);
     /** 途经点*/
     private ArrayList<NaviPoi> wayPoints = new ArrayList<>();
     /** 乘客的marker*/
@@ -346,8 +347,9 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
                 PolylineOptions options = new PolylineOptions()
                         .addAll(routeData.getRoutePoints())
                         .width(width)
-                        .lineType(PolylineOptions.LineType.LINE_TYPE_DOTTEDLINE)
-                        .colorTexture(BitmapDescriptorFactory.fromResource(R.mipmap.bule_icon));
+                        .color(0xff6cbe89);
+//                        .lineType(PolylineOptions.LineType.LINE_TYPE_DOTTEDLINE)// 圆点虚线方法
+//                        .colorTexture(BitmapDescriptorFactory.fromResource(R.mipmap.bule_icon));
                 // 设置虚线
 //                ArrayList<Integer> l = new ArrayList<>();
 //                // 虚线的实线部分长度
@@ -356,6 +358,7 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
 //                l.add(10);
 //                options.pattern(l);
                 Polyline polyline = mView.getTencentMap().addPolyline(options);
+                polyline.setLevel(OverlayLevel.OverlayLevelAboveBuildings);// 层级在搂块之上
                 polylineList.add(polyline);
                 // 将路线显示在屏幕中央
                 SHelper.fitsWithRoute(mView.getTencentMap()
@@ -483,6 +486,17 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
             }
         }
 
+        /**
+         *  这是版本5.1.2新增的接口
+         * @param clickRouteId
+         * @param arrayList 被选中的路线点串信息
+         */
+        @Override
+        public void onFollowRouteClick(String clickRouteId, ArrayList<LatLng> arrayList) {
+            /** 不需要在这里进行上传了，因为该回调后马上会进行onUpdateTraffic回调*/
+            routeId = clickRouteId;
+        }
+
         @Override
         public void onRecalculateRouteFailure(int i, int i1, String s) {
 
@@ -545,6 +559,7 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
             order.setDriverStatus(driverStatus);
             order.setLeftDistance(navigationData.getLeftDistance());
             order.setLeftTime(navigationData.getLeftTime());
+            Log.e("Tag123", "里程:"+navigationData.getLeftDistance());
         }
 
         @Override
@@ -567,17 +582,43 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
 
         }
 
+        /**
+         *  这是5.0.1以前的接口
+         */
+//        @Override
+//        public void onUpdateTraffic(int i, int i1, ArrayList<TrafficItem> arrayList) {
+//            // 上传路线
+//            if(arrayList.size() != 0){
+//                SynchroRoute synchroRoute = new SynchroRoute();
+//                synchroRoute.setRouteId(routeId);
+//                synchroRoute.setRoutePoints(ConvertHelper.getRoutePoints(routeData));
+//                synchroRoute.setTrafficItems(ConvertHelper.converTrafficItems(arrayList));
+//                tencentLocusSynchro.updateRoute(synchroRoute, order);
+//            }
+//        }
+
+        /**
+         *  这是5.1.2替换的接口
+         */
         @Override
-        public void onUpdateTraffic(int i, int i1, ArrayList<TrafficItem> arrayList) {
-            // 上传路线
-            if(arrayList.size() != 0){
+        public void onUpdateTraffic(String routeId
+                , int totalDistance, int leftDistance
+                , ArrayList<LatLng> ponits, ArrayList<TrafficItem> trafficItemArr
+                , boolean isCurrent) {
+            /** 注意：因为有伴随路线功能，所以onUpdateTraffic会调用多次，只需选择当前行驶的路线上传*/
+            if (trafficItemArr == null || !isCurrent) {
+                return;
+            }
+            Log.e("Tag123", "routeId:"+routeId);
+            if(trafficItemArr.size() != 0){
                 SynchroRoute synchroRoute = new SynchroRoute();
                 synchroRoute.setRouteId(routeId);
                 synchroRoute.setRoutePoints(ConvertHelper.getRoutePoints(routeData));
-                synchroRoute.setTrafficItems(ConvertHelper.converTrafficItems(arrayList));
+                synchroRoute.setTrafficItems(ConvertHelper.converTrafficItems(trafficItemArr));
                 tencentLocusSynchro.updateRoute(synchroRoute, order);
             }
         }
+
     }
 
     class MyLocationListener implements TencentLocationListener {
@@ -590,7 +631,9 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
             // 不断获取并更新cityCode
             cityCode = tencentLocation.getCityCode();
 
+            // 导航sdk没有与定位sdk强绑定，导航sdk不具备定位的功能，需要定位sdk不断灌点才能移动
             if (tencentCarNaviManager != null) {
+                ToastUtils.INSTANCE().Toast(tencentLocation.getProvider()+"--"+tencentLocation.getLatitude()+","+tencentLocation.getLongitude());
                 tencentCarNaviManager.updateLocation(SHelper.convertToGpsLocation(tencentLocation), 0, "");
             }
         }

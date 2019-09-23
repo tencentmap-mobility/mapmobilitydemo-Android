@@ -417,7 +417,7 @@ public class PassengerTaskPresenter implements PassengerTaskContract.IPresenter 
                         //marker 逆时针方向旋转
                       .clockwise(false))
                       .locations(locations)
-                      .duration(4950)
+                      .duration(1000)// 每个gps点之间动画的时长
                       .polyline(polyline)
                       .isEraseLine(0);
                 carSmoothMovement = new CarSmoothMovement(option, mView.getTencentMap());
