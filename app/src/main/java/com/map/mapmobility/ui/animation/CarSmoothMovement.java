@@ -27,7 +27,7 @@ import java.util.ArrayList;
  */
 public class CarSmoothMovement {
 
-    static final String LOG_TAG = "navi";
+    static final String LOG_TAG = "tag12345";
 
     private static final byte[] eraseLock = new byte[0];
     static final int ERASE_MSG = 0;
@@ -96,6 +96,26 @@ public class CarSmoothMovement {
             Log.e(LOG_TAG,"smooth movement has lat and lng null or size 0");
             return;
         }
+
+        // 缩放级别正常时，使用平滑移动sdk
+        if(markerAnim != null){
+            markerAnim.cancelAnimation();
+            markerAnim = null;
+        }
+
+        // 将旧数据直接擦除
+        if(mOption.getEraseLineType() != -1)
+            if(pointCache.size() > 0){
+                synchronized (eraseLock){
+                    // 如果当前擦除还未结束，又有新串来，则直接擦除到最后
+                    LatLng latLng = converLatlng(pointCache.get(pointCache.size()-1));
+                    mOption.getPolyline().eraseTo
+                            (pointCache.get(0).getAttachedIndex(), latLng);
+                    pointCache.clear();
+                    addCarMarker(latLng, -1);
+                }
+            }
+
         // 剔除掉重复数据
         latLngs = SHelper.removeRepeat(latLngs);
         if(lastLatlng != null){
@@ -104,13 +124,11 @@ public class CarSmoothMovement {
                 return;
             latLngs = SHelper.addLalng(latLngs, lastLatlng);
         }
+        Log.e(LOG_TAG, "latlngs size :" + latLngs.length);
         addCarMarker(latLngs[0], -1);
         // 将最后一个吸附点缓存下来
         lastLatlng = latLngs[latLngs.length-1];
 
-        // 缩放级别正常时，使用平滑移动sdk
-        if(markerAnim != null)
-            markerAnim = null;
         // 两个gps动画持续时间
         int duration = mOption.getDuration();
         if(latLngs.length > 1){
@@ -149,17 +167,6 @@ public class CarSmoothMovement {
 
         // 擦除已经走过的轨迹
         if(mOption.getEraseLineType() != -1) {
-            if(pointCache.size() > 0){
-                synchronized (eraseLock){
-                    // 如果当前擦除还未结束，又有新串来，则直接擦除到最后
-                    LatLng latLng = converLatlng(pointCache.get(pointCache.size()-1));
-                    mOption.getPolyline().eraseTo
-                            (pointCache.get(0).getAttachedIndex(), latLng);
-                    pointCache.clear();
-                }
-            }else{
-                pointCache.clear();
-            }
             // 将点缓存下来
             for(SynchroLocation l : mOption.getLocations()){
                 pointCache.add(l);
@@ -179,7 +186,10 @@ public class CarSmoothMovement {
      */
     public void stopErase() {
         if(eraseHandler != null){
-            eraseHandler.removeMessages(ERASE_MSG);
+            if(mOption.getZoomLevel() <= maxZoom)
+                eraseHandler.removeMessages(ERASE_MSG);
+            else
+                eraseHandler.removeMessages(EEASE_MOVE_MSG);
         }
     }
 
@@ -223,6 +233,7 @@ public class CarSmoothMovement {
             // 当动画停止的时候，做次方向校验
             if(mDirection != -1)
                 addCarMarker(null, mDirection);
+            Log.e(LOG_TAG, "animation end");
         }
 
         @Override
@@ -274,8 +285,15 @@ public class CarSmoothMovement {
                             LatLng latLng = converLatlng(pointCache.get(1));
                             mOption.getPolyline().eraseTo
                                     (pointCache.get(0).getAttachedIndex(), latLng);
-                            addCarMarker(latLng, pointCache.get(1).getDirection() != -1
-                                    ? pointCache.get(1).getDirection() : pointCache.get(1).getRoadDirection());
+                            float realDirection = CarPreviewUtils
+                                    .getDirection(converLatlng(pointCache.get(0)), latLng);
+                            if(realDirection < 0)
+                                realDirection = realDirection + 360;
+                            if(markerAnim != null){
+                                markerAnim.endAnimation();
+                                markerAnim = null;
+                            }
+                            addCarMarker(latLng, realDirection);
                             synchronized (eraseLock){
                                 pointCache.remove(0);
                             }
@@ -387,6 +405,11 @@ public class CarSmoothMovement {
 
         public SmoothMovementOption isEraseLine(int eraseLineType){
             this.eraseLineType = eraseLineType;
+            if(polyline != null)
+                if(eraseLineType == 1)
+                    polyline.setEraseable(true);
+                else
+                    polyline.setEraseable(false);
             return this;
         }
 

@@ -5,7 +5,7 @@ android {
 
     defaultConfig {
         applicationId "com.map.mapmobility"
-        minSdkVersion 15
+        minSdkVersion 18
         targetSdkVersion 26
         versionCode 1
         versionName "1.0"
@@ -38,13 +38,16 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     // 定位sdk
-    implementation files('libs/TencentLocationSdk_v6.2.5.3.jar')
+    implementation files('libs/TencentLocationSDK_v8.4.7_rdb41b51d_20190906_163315_release.jar')
     // 地图sdk
     implementation 'com.tencent.map:tencent-map-vector-sdk:4.2.7'
     // 导航sdk
-    implementation(name: 'TencentNaviSDK_v5.1.2_r1223_3e5f5813_release', ext: 'aar')
+    implementation(name: 'tencentnavisdk-release-5.1.3', ext: 'aar')
     // 司乘同显sdk
     implementation files('libs/TencentLocusSynchroSDK_v1.0.4_r1223_3e5f5813_release.jar')
+    // 一键上报
+    implementation(name: 'record-sdk-release-1.0.0', ext: 'aar')
+    implementation(name: 'tencentnavi-surport-release-1.0.0', ext: 'aar')
     // 小车平滑sdk
     implementation files('libs/TencentmapVectorUtils_v1.0.4.760b63d.jar')
     // 周边车辆sdk

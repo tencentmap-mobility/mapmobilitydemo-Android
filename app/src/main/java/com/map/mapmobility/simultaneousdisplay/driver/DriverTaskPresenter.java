@@ -20,6 +20,7 @@ import com.tencent.map.locussynchro.model.RouteUploadError;
 import com.tencent.map.locussynchro.model.SyncData;
 import com.tencent.map.locussynchro.model.SynchroLocation;
 import com.tencent.map.locussynchro.model.SynchroRoute;
+import com.tencent.map.navi.GpsRestartManager;
 import com.tencent.map.navi.INaviView;
 import com.tencent.map.navi.TencentNaviCallback;
 import com.tencent.map.navi.TencentRouteSearchCallback;
@@ -32,6 +33,8 @@ import com.tencent.map.navi.data.NaviTts;
 import com.tencent.map.navi.data.NavigationData;
 import com.tencent.map.navi.data.RouteData;
 import com.tencent.map.navi.data.TrafficItem;
+import com.tencent.map.navi.feedback.screen.percentor.UploadPercentor;
+import com.tencent.map.screen.ScreenRecordManager;
 import com.tencent.tencentmap.mapsdk.maps.model.BitmapDescriptorFactory;
 import com.tencent.tencentmap.mapsdk.maps.model.LatLng;
 import com.tencent.tencentmap.mapsdk.maps.model.Marker;
@@ -59,7 +62,7 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
     private TencentLocationListener locationListener;
 
     /** 路线规划的起点*/
-    private NaviPoi mFrmoLatlng = new NaviPoi(22.588968,113.863332);
+    private NaviPoi mFrmoLatlng = new NaviPoi(22.779268,113.856332);
     /** 路线规划的终点*/
     private NaviPoi mToLatlng = new NaviPoi(22.600728,113.847116);
     /** 途经点*/
@@ -136,6 +139,15 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
         tencentCarNaviManager.addNaviView(new MyCarNaviView());
         // 添加导航事件回调
         tencentCarNaviManager.setNaviCallback(new MyTencentCallback());
+        // 定位重启
+        tencentCarNaviManager.setOnGpsManagerCallback(new GpsRestartManager.OnGpsManagerCallback() {
+            @Override
+            public void restart() {
+                if(mLocationManager == null)
+                    return;
+                mLocationManager.reStartGpsLocationManager("GPS Error");
+            }
+        });
     }
 
     /**
@@ -144,7 +156,7 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
     @Override
     public void startLocation() {
         // 初始化定位
-        mLocationManager = TencentLocationManager.getInstance(mView.getFragmentContext());
+        mLocationManager = TencentLocationManager.getInstance(mView.getFragmentContext().getApplicationContext());
         mLocationManager.setCoordinateType(TencentLocationManager.COORDINATE_TYPE_GCJ02);
         // 定位监听
         locationListener = new MyLocationListener();
@@ -307,6 +319,35 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
             }
             markerList.clear();
         }
+    }
+
+    /**
+     *  开始一键上报
+     */
+    private void report(String adCode, String orderId, String userId) {
+        UploadPercentor.setAdCode(adCode);
+        // 设置apikey，地图的apikey
+        UploadPercentor.setApiKey("");
+        // 设置订单id
+        UploadPercentor.setOrderId(orderId);
+        // 设置用户id
+        UploadPercentor.setUserId(userId);
+        ScreenRecordManager.getInctance().setOnRecordListener(new ScreenRecordManager.OnRecordListener() {
+            @Override
+            public void onPrepare() {
+                // 开始录音前调用，app如果有录音功能需要在这里结束录音，解决录音冲突
+            }
+
+            @Override
+            public void onStart() {
+                // 开始录音后调用
+            }
+
+            @Override
+            public void onStop() {
+                // 结束录音后调用，在这里回复app的录音
+            }
+        });
     }
 
     class MySearchRouteCallback implements TencentRouteSearchCallback {
