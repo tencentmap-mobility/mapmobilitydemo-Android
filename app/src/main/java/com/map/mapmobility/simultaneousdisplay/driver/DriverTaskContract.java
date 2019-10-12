@@ -75,6 +75,11 @@ public class DriverTaskContract {
          */
         void stopPassengerDriverSynchro();
 
+        /**
+         * 一键上报
+         */
+        void startReport();
+
     }
 
     interface IView extends BaseView<DriverTaskContract.IPresenter> {

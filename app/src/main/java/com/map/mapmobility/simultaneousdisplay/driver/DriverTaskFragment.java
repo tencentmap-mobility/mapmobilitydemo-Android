@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -35,6 +36,8 @@ public class DriverTaskFragment extends Fragment
     private TextView tvDriverPassengerSyn;
     /** 抽屉控件*/
     private DrawerLayout drawerLayout;
+    /** 一键上报*/
+    private RelativeLayout reportLayout;
 
     @Nullable
     @Override
@@ -57,6 +60,8 @@ public class DriverTaskFragment extends Fragment
         tvDriverPassengerSyn = mView.findViewById(R.id.tv_start_driver_passenger_syn);
         tvDriverPassengerSyn.setOnClickListener(this);
         drawerLayout = mView.findViewById(R.id.driver_task_fragment_drawer_layout);
+        reportLayout = mView.findViewById(R.id.report_layout);
+        reportLayout.setOnClickListener(this);
 
         if(mPresenter != null){
             mPresenter.start();
@@ -85,6 +90,9 @@ public class DriverTaskFragment extends Fragment
                 mPresenter.startPassengerDriverSynchro();
                 // 司乘开始同步
                 mPresenter.isSyncEnable(true);
+            case R.id.report_layout:
+                // 一键上报
+                mPresenter.startReport();
                 break;
         }
     }

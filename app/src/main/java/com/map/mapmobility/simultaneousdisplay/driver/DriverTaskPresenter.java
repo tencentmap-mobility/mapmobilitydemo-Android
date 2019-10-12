@@ -34,6 +34,7 @@ import com.tencent.map.navi.data.NavigationData;
 import com.tencent.map.navi.data.RouteData;
 import com.tencent.map.navi.data.TrafficItem;
 import com.tencent.map.navi.feedback.screen.percentor.UploadPercentor;
+import com.tencent.map.navi.feedback.screen.report.OneKeyReportManager;
 import com.tencent.map.screen.ScreenRecordManager;
 import com.tencent.tencentmap.mapsdk.maps.model.BitmapDescriptorFactory;
 import com.tencent.tencentmap.mapsdk.maps.model.LatLng;
@@ -78,9 +79,9 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
     private ArrayList<Marker> markerList = new ArrayList<>();
 
     /** 订单id，注意：需要与乘客端保持一致*/
-    private String orderId = "xc_10001";
+    private String orderId = "1010204403053717";
     /** 司机的id*/
-    private String driverId = "OD_xc_10001_10001";
+    private String driverId = "1022001150863";
     /**
      *  订单状态
      *  STATUS_NO_ORDER 订单状态-无订单 订单已经结束开始空驶
@@ -295,6 +296,12 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
         }
     }
 
+    @Override
+    public void startReport() {
+        // 一键上报
+        report(cityCode, orderId, driverId);
+    }
+
     /**
      *  添加起点、终点marker
      *  路线规划成功后，需要自己添加起点终点图标
@@ -348,6 +355,7 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
                 // 结束录音后调用，在这里回复app的录音
             }
         });
+        OneKeyReportManager.getInstance().showOneKeyReportDialog(mView.getFragmentContext());
     }
 
     class MySearchRouteCallback implements TencentRouteSearchCallback {
@@ -600,7 +608,7 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
             order.setDriverStatus(driverStatus);
             order.setLeftDistance(navigationData.getLeftDistance());
             order.setLeftTime(navigationData.getLeftTime());
-            Log.e("Tag123", "里程:"+navigationData.getLeftDistance());
+            Log.e(LOG_TAG, "里程:"+navigationData.getLeftDistance());
         }
 
         @Override
@@ -650,7 +658,7 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
             if (trafficItemArr == null || !isCurrent) {
                 return;
             }
-            Log.e("Tag123", "routeId:"+routeId);
+            Log.e(LOG_TAG, "routeId:"+routeId);
             if(trafficItemArr.size() != 0){
                 SynchroRoute synchroRoute = new SynchroRoute();
                 synchroRoute.setRouteId(routeId);
@@ -674,7 +682,6 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
 
             // 导航sdk没有与定位sdk强绑定，导航sdk不具备定位的功能，需要定位sdk不断灌点才能移动
             if (tencentCarNaviManager != null) {
-                ToastUtils.INSTANCE().Toast(tencentLocation.getProvider()+"--"+tencentLocation.getLatitude()+","+tencentLocation.getLongitude());
                 tencentCarNaviManager.updateLocation(SHelper.convertToGpsLocation(tencentLocation), 0, "");
             }
         }

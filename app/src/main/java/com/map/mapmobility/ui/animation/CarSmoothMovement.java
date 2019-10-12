@@ -27,7 +27,7 @@ import java.util.ArrayList;
  */
 public class CarSmoothMovement {
 
-    static final String LOG_TAG = "tag12345";
+    static final String LOG_TAG = "car_move";
 
     private static final byte[] eraseLock = new byte[0];
     static final int ERASE_MSG = 0;
@@ -37,6 +37,8 @@ public class CarSmoothMovement {
     private ArrayList<SynchroLocation> pointCache = new ArrayList<>();
     /** 每次缓存最后一个点，要和下一次的点做角度计算*/
     private LatLng lastLatlng;
+    /** 保存上一次end anim校正的角度*/
+    private float endAnimDirection = -1;
 
     /**
      * 开始一个线程轮询不断擦除小车运动轨迹
@@ -94,6 +96,8 @@ public class CarSmoothMovement {
         LatLng[] latLngs = mOption.getLatLngs();
         if(latLngs == null || latLngs.length == 0){
             Log.e(LOG_TAG,"smooth movement has lat and lng null or size 0");
+            if(endAnimDirection != -1 && markerAnim != null)
+                addCarMarker(null,  endAnimDirection);
             return;
         }
 
@@ -142,8 +146,13 @@ public class CarSmoothMovement {
                     , true);
             // 设置开始时候的角度
             SynchroLocation location = mOption.getLocations().get(0);
-            float direction = location.getRoadDirection();
-            mListener.setStartDirection(360-direction);
+            float direction = location.getRoadDirection() != -1 ? location.getRoadDirection() : location.getDirection();
+            if(direction > 0){
+                direction = 360-direction;
+            }
+            mListener.setStartDirection(direction);
+            Log.e(LOG_TAG, "start direction  location.getRoadDirection() :" +location.getRoadDirection() +", location.getDirection():"+ location.getDirection());
+            Log.e(LOG_TAG, "start direction  size :" +(direction));
             // 设置最终点的角度
             int size = latLngs.length;
             // 最终点的角度取路线的方向
@@ -154,7 +163,9 @@ public class CarSmoothMovement {
                             .getDirection(latLngs[size - 2],latLngs[size - 1]);
                     if(realDirection < 0)
                         realDirection = realDirection + 360;
+                    endAnimDirection = realDirection;
                     mListener.setDirection(realDirection);
+                    Log.e(LOG_TAG, "end direction  size :" +realDirection);
                 }
                 else
                     mListener.setDirection(d);
@@ -259,8 +270,10 @@ public class CarSmoothMovement {
             try{
                 switch (msg.what){
                     case ERASE_MSG:
-                        if(pointCache.size() != 0 || pointCache.size() != 1){
+                        if(pointCache.size() != 0 && pointCache.size() != 1){
                             // 擦除路线
+                            if(mOption.getPolyline() == null)
+                                return;
                             LatLng latLng = converLatlng(pointCache.get(1));
                             mOption.getPolyline().eraseTo
                                     (pointCache.get(0).getAttachedIndex(), latLng);
@@ -274,14 +287,17 @@ public class CarSmoothMovement {
                                 SynchroLocation last = pointCache.get(pointCache.size()-1);
                                 addCarMarker(null, last.getDirection() != -1
                                         ? last.getDirection() : last.getRoadDirection());
+                                Log.e("tag123456","ast.getDirection():"+last.getDirection());
                             }
 
                             stopErase();
                         }
                         break;
                     case EEASE_MOVE_MSG:
-                        if(pointCache.size() != 0 || pointCache.size() != 1){
+                        if(pointCache.size() != 0 && pointCache.size() != 1){
                             // 擦除路线
+                            if(mOption.getPolyline() == null)
+                                return;
                             LatLng latLng = converLatlng(pointCache.get(1));
                             mOption.getPolyline().eraseTo
                                     (pointCache.get(0).getAttachedIndex(), latLng);
@@ -334,7 +350,7 @@ public class CarSmoothMovement {
     private void addCarMarker(LatLng latLng, float direction) {
         // 展示小车图标
         if (carMarker == null) {
-            carMarker = map.addMarker(mOption.getCarMarkerOptions().rotation(direction));
+            carMarker = map.addMarker(mOption.getCarMarkerOptions());
         } else {
             if(latLng != null){
                 carMarker.setPosition(latLng);

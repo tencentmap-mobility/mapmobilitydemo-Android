@@ -3,6 +3,9 @@
 buildscript {
     repositories {
         maven{
+            url "https://oss.sonatype.org/content/groups/public"
+        }
+        maven{
             url "https://oss.sonatype.org/content/repositories/snapshots/"
         }
         maven{

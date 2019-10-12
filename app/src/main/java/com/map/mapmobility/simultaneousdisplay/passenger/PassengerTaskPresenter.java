@@ -65,7 +65,7 @@ public class PassengerTaskPresenter implements PassengerTaskContract.IPresenter 
     private Polyline polyline;
 
     /** 订单id*/
-    private String orderId = "xc_10001";
+    private String orderId = "1010204403053717";
     /** 乘客id*/
     private String passengerId = "OU_xc_10001_1";
     /**
@@ -251,7 +251,7 @@ public class PassengerTaskPresenter implements PassengerTaskContract.IPresenter 
 
     private void addInfoWindow(Marker marker) {
         mView.getTencentMap().setInfoWindowAdapter(infoWindowAdapter);
-        if(option == null)
+        if(option == null || marker == null)
             return;
         marker.showInfoWindow();
         marker.refreshInfoWindow();
