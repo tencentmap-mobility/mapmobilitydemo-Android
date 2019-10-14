@@ -122,7 +122,7 @@ public class CarPreviewTaskActivity extends BaseActivity implements ICarPreView{
         /**
          * 结束运力
          */
-        previewMapManager.isNearCarShow(false);
+        previewMapManager.isNearCarShow(true);
         // 注意：需要在setCarsTypeResMap()与setCurrentLatLng()方法之前添加
         previewMapManager.attachCarsMap(mTencentCarsMap);
         /**
