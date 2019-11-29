@@ -108,6 +108,8 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
      */
     private String cityCode;
 
+    private boolean isNaving;// 是否导航中
+
     public DriverTaskPresenter(DriverTaskFragment view) {
         this.mView = view;
         mView.setPresenter(this);
@@ -122,6 +124,7 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
 
     @Override
     public void destory() {
+        isNaving = false;
         isSearchRoute = false;
         ToastUtils.INSTANCE().destory();
         stopPassengerDriverSynchro();
@@ -227,6 +230,7 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
     public void startSimulateNavi(int index) {
         if(isSearchRoute && tencentCarNaviManager != null){
             try{
+                isNaving = true;
                 tencentCarNaviManager.startSimulateNavi(index);
                 // 导航界面自带起点终点marker，所以需要将自己添加的marker清除掉
                 removeMarkers();
@@ -243,6 +247,7 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
     public void startNavi(int index) {
         if(isSearchRoute && tencentCarNaviManager != null){
             try{
+                isNaving = true;
                 tencentCarNaviManager.startNavi(index);
                 // 导航界面自带起点终点marker，所以需要将自己添加的marker清除掉
                 removeMarkers();
@@ -501,6 +506,7 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
             // 结束导航
             if(tencentCarNaviManager != null){
                 tencentCarNaviManager.stopNavi();
+                isNaving = false;
             }
         }
 
@@ -681,9 +687,22 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
             cityCode = tencentLocation.getCityCode();
 
             // 导航sdk没有与定位sdk强绑定，导航sdk不具备定位的功能，需要定位sdk不断灌点才能移动
+            // 在非导航态，直接上传定位点；导航态，通过onUpdateAttachedLocation 上传吸附点
             if (tencentCarNaviManager != null) {
                 tencentCarNaviManager.updateLocation(SHelper.convertToGpsLocation(tencentLocation), 0, "");
             }
+            if(!isNaving){
+                SynchroLocation location = ConvertHelper.convertToSynchroLocation(tencentLocation);
+                if(location == null){
+                    Log.e(LOG_TAG, "onLocationChanged SynchroLocation null");
+                    return;
+                }
+                if(cityCode != null && !cityCode.isEmpty())
+                    location.setCityCode(cityCode);
+                if(tencentLocusSynchro != null)
+                    tencentLocusSynchro.updateLocation(location, order);
+            }
+
         }
 
         @Override
