@@ -1,6 +1,11 @@
 package com.map.mapmobility.simultaneousdisplay.driver;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.util.Log;
 
@@ -36,6 +41,7 @@ import com.tencent.map.navi.data.TrafficItem;
 import com.tencent.map.navi.feedback.screen.percentor.UploadPercentor;
 import com.tencent.map.navi.feedback.screen.report.OneKeyReportManager;
 import com.tencent.map.screen.ScreenRecordManager;
+import com.tencent.navi.surport.utils.DeviceUtils;
 import com.tencent.tencentmap.mapsdk.maps.model.BitmapDescriptorFactory;
 import com.tencent.tencentmap.mapsdk.maps.model.LatLng;
 import com.tencent.tencentmap.mapsdk.maps.model.Marker;
@@ -63,9 +69,9 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
     private TencentLocationListener locationListener;
 
     /** 路线规划的起点*/
-    private NaviPoi mFrmoLatlng = new NaviPoi(22.779268,113.856332);
+    private NaviPoi mFrmoLatlng = new NaviPoi(31.195298,107.503936);
     /** 路线规划的终点*/
-    private NaviPoi mToLatlng = new NaviPoi(22.600728,113.847116);
+    private NaviPoi mToLatlng = new NaviPoi(31.21997,107.47186);
     /** 途经点*/
     private ArrayList<NaviPoi> wayPoints = new ArrayList<>();
     /** 乘客的marker*/
@@ -79,9 +85,9 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
     private ArrayList<Marker> markerList = new ArrayList<>();
 
     /** 订单id，注意：需要与乘客端保持一致*/
-    private String orderId = "1010204403053717";
+    private String orderId = "19121623001327";
     /** 司机的id*/
-    private String driverId = "1022001150863";
+    private String driverId = "174081A2G01P_01";
     /**
      *  订单状态
      *  STATUS_NO_ORDER 订单状态-无订单 订单已经结束开始空驶
@@ -109,6 +115,11 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
     private String cityCode;
 
     private boolean isNaving;// 是否导航中
+
+    private static final String NOTIFICATION_CHANNEL_NAME = "locationdemoBackgroundLocation";
+    /** 前台服务的通知*/
+    private NotificationManager notificationManager;
+    boolean isCreateChannel;
 
     public DriverTaskPresenter(DriverTaskFragment view) {
         this.mView = view;
@@ -149,9 +160,11 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
             public void restart() {
                 if(mLocationManager == null)
                     return;
-                mLocationManager.reStartGpsLocationManager("GPS Error");
+//                mLocationManager.reStartGpsLocationManager();
             }
         });
+        // 开启语音
+        tencentCarNaviManager.setInternalTtsEnabled(true);
     }
 
     /**
@@ -167,6 +180,8 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
         // 开始定位
         TencentLocationRequest request = TencentLocationRequest.create();
         request.setInterval(5000);
+        request.setQQ(DeviceUtils.getImei(mView.getFragmentContext()));
+        mLocationManager.enableForegroundLocation(100001, buildNotification());
         int error = mLocationManager.requestLocationUpdates(request, locationListener);
         Log.d(LOG_TAG, "request location error"+error);
     }
@@ -361,6 +376,44 @@ public class DriverTaskPresenter implements DriverTaskContract.IPresenter {
             }
         });
         OneKeyReportManager.getInstance().showOneKeyReportDialog(mView.getFragmentContext());
+    }
+
+    private Notification buildNotification() {
+        Notification.Builder builder = null;
+        Notification notification = null;
+        if (android.os.Build.VERSION.SDK_INT >= 26) {
+            //Android 8.0上对Notification进行了修改，如果设置的targetSDKVersion>=26建议使用此种方式创建通知栏
+            if (notificationManager == null) {
+                notificationManager = (NotificationManager) mView.getFragmentContext()
+                        .getSystemService(Context.NOTIFICATION_SERVICE);
+            }
+            String channelId = mView.getFragmentContext().getPackageName();
+            if (!isCreateChannel) {
+                NotificationChannel notificationChannel = new NotificationChannel(channelId,
+                        NOTIFICATION_CHANNEL_NAME, NotificationManager.IMPORTANCE_DEFAULT);
+                notificationChannel.enableLights(true);//是否在桌面icon右上角展示小圆点
+                notificationChannel.setLightColor(Color.BLUE); //小圆点颜色
+                notificationChannel.setShowBadge(true); //是否在久按桌面图标时显示此渠道的通知
+                notificationManager.createNotificationChannel(notificationChannel);
+                isCreateChannel = true;
+            }
+            builder = new Notification.Builder(mView.getFragmentContext().getApplicationContext(), channelId);
+        } else {
+            builder = new Notification.Builder(mView.getFragmentContext().getApplicationContext());
+        }
+        builder.setSmallIcon(R.mipmap.ic_launcher)
+                .setContentTitle("LocationDemo")
+                .setContentText("正在后台运行")
+                .setLargeIcon(BitmapFactory.decodeResource(mView.getFragmentContext().getResources()
+                        , R.mipmap.ic_launcher))
+                .setWhen(System.currentTimeMillis());
+
+        if (android.os.Build.VERSION.SDK_INT >= 16) {
+            notification = builder.build();
+        } else {
+            notification = builder.getNotification();
+        }
+        return notification;
     }
 
     class MySearchRouteCallback implements TencentRouteSearchCallback {
